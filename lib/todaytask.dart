@@ -297,58 +297,98 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.brown[800],
-        title: Text('Today\'s Tasks'),
-        centerTitle: true,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0),
+            _buildNavButton(Icons.favorite, 'Favorites', 1),
+            _buildNavButton(Icons.check_circle, 'Completed', 2),
+            _buildNavButton(Icons.calendar_today, 'Calendar', 3),
+          ],
+        ),
+        automaticallyImplyLeading: false,
       ),
-      body: tasks.isEmpty
-          ? Center(
-        child: Text('No tasks added yet!', style: TextStyle(fontSize: 20)),
-      )
-          : ListView.builder(
-        padding: EdgeInsets.all(16),
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              title: Text(tasks[index]['title']),
-              subtitle: Text('Due: ${tasks[index]['date']} at ${tasks[index]['time']}'),
-              trailing: _buildTaskMenu(index), // Popup menu for options
-              onTap: () {
-                // Show the edit task modal on tapping the list item
-                _showEditTaskModal(index);
-              },
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Today\'s Tasks',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-          );
-        },
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 5,
+                    child: ListTile(
+                      title: Text(
+                        tasks[index]['title'],
+                        style: TextStyle(
+                          color: tasks[index]['isCompleted'] ? Colors.grey : Colors.black,
+                          decoration: tasks[index]['isCompleted']
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${tasks[index]['date']} at ${tasks[index]['time']}',
+                        style: TextStyle(
+                          color: tasks[index]['isCompleted'] ? Colors.grey : Colors.black,
+                          decoration: tasks[index]['isCompleted']
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
+                      ),
+                      trailing: _buildTaskMenu(index),
+                      leading: Checkbox(
+                        value: tasks[index]['isCompleted'],
+                        onChanged: (bool? value) {
+                          setState(() {
+                            tasks[index]['isCompleted'] = value ?? false;
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showTaskInputModal, // Show modal for adding new task
-        backgroundColor: Colors.brown[800],
+        onPressed: _showTaskInputModal,
         child: Icon(Icons.add),
+        backgroundColor: Colors.brown[800],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle),
-            label: 'Today\'s Tasks',
+    );
+  }
+
+  // Helper function to build navigation buttons
+  Widget _buildNavButton(IconData icon, String label, int index) {
+    return GestureDetector(
+      onTap: () {
+        _onItemTapped(index);
+      },
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: _selectedIndex == index ? Colors.white : Colors.brown[200],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle),
-            label: 'Completed',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
+          Text(
+            label,
+            style: TextStyle(
+              color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+              fontSize: 12,
+            ),
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.brown[800],
-        onTap: _onItemTapped,
       ),
     );
   }
