@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:task_management_app/favorites_screen.dart';
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
@@ -14,6 +13,7 @@ class TodayTaskPage extends StatefulWidget {
 class _TodayTaskPageState extends State<TodayTaskPage> {
   List<Map<String, dynamic>> tasks = []; // To hold the list of tasks from SQLite
   final DatabaseHelper _dbHelper = DatabaseHelper(); // Database instance
+  int _selectedIndex = 0; // Default to Today Tasks tab
 
   @override
   void initState() {
@@ -262,62 +262,94 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
+  // Function to handle bottom navigation
+  void _onItemTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TodayTaskPage()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CompletedScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CalendarScreen()),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.brown[800],
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavButton(context, Icons.list, 'All Tasks', AllTasksScreen()),
-            _buildNavButton(context, Icons.favorite, 'Favorites', FavoritesScreen()),
-            _buildNavButton(context, Icons.check_circle, 'Completed', CompletedScreen()),
-            _buildNavButton(context, Icons.calendar_today, 'Calendar', CalendarScreen()),
-          ],
-        ),
+        title: Text('Today\'s Tasks'),
         centerTitle: true,
       ),
       body: tasks.isEmpty
           ? Center(
-          child: Text('No tasks added yet!', style: TextStyle(fontSize: 20)))
+        child: Text('No tasks added yet!', style: TextStyle(fontSize: 20)),
+      )
           : ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: tasks.length,
         itemBuilder: (context, index) {
           return Card(
-            color: Colors.brown[400],
             margin: EdgeInsets.symmetric(vertical: 8),
             child: ListTile(
-              title: Text(
-                tasks[index]['title'] ?? '',
-                style: TextStyle(color: Colors.white),
-              ),
-              subtitle: Text(
-                'Scheduled: ${tasks[index]['date']}\nTime: ${tasks[index]['time']}',
-                style: TextStyle(color: Colors.white),
-              ),
-              trailing: _buildTaskMenu(index),
+              title: Text(tasks[index]['title']),
+              subtitle: Text('Due: ${tasks[index]['date']} at ${tasks[index]['time']}'),
+              trailing: _buildTaskMenu(index), // Popup menu for options
+              onTap: () {
+                // Show the edit task modal on tapping the list item
+                _showEditTaskModal(index);
+              },
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showTaskInputModal,
-        child: Icon(Icons.add, color: Colors.white),
+        onPressed: _showTaskInputModal, // Show modal for adding new task
         backgroundColor: Colors.brown[800],
+        child: Icon(Icons.add),
       ),
-    );
-  }
-
-  // Helper method to build nav buttons
-  IconButton _buildNavButton(BuildContext context, IconData icon, String label, Widget screen) {
-    return IconButton(
-      icon: Icon(icon),
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
-      },
-      color: Colors.white,
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle),
+            label: 'Today\'s Tasks',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle),
+            label: 'Completed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Calendar',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.brown[800],
+        onTap: _onItemTapped,
+      ),
     );
   }
 }
