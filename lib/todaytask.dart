@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
- // This line should be at the top
+import 'package:task_management_app/favorites_screen.dart';
+import 'package:task_management_app/completed_screen.dart';
+import 'package:task_management_app/calendar_screen.dart'; // Import CalendarScreen
 
 @HiveType(typeId: 0)
 class Task {
@@ -28,6 +30,7 @@ class TodayTaskPage extends StatefulWidget {
 class _TodayTaskPageState extends State<TodayTaskPage> {
   List<Task> tasks = []; // Use List<Task> instead of List<Map<String, dynamic>>
   final Box<Task> _taskBox = Hive.box<Task>('tasks');
+  int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
 
   @override
   void initState() {
@@ -211,7 +214,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                     backgroundColor: Colors.brown[800],
                   ),
                 ),
-
               ],
             ),
           ),
@@ -245,6 +247,28 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
+  // Function to handle bottom navigation
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // Update selected index
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
+        break;
+      case 1:
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
+        break;
+      case 2:
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
+        break;
+      case 3:
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
+        break;
+    }
+  }
+
   // Build method for rendering UI
   @override
   Widget build(BuildContext context) {
@@ -270,6 +294,29 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         onPressed: _showTaskInputModal,
         child: Icon(Icons.add),
         backgroundColor: Colors.brown[800],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Today\'s Tasks',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle),
+            label: 'Completed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Calendar',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.brown[800],
+        onTap: _onItemTapped,
       ),
     );
   }
