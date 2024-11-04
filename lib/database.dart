@@ -5,6 +5,7 @@ import 'package:task_management_app/calendar_screen.dart';
 import 'package:task_management_app/database.dart'; // Import DatabaseHelper
 import 'package:intl/intl.dart';
 
+
 class TodayTaskPage extends StatefulWidget {
   @override
   _TodayTaskPageState createState() => _TodayTaskPageState();
@@ -42,8 +43,8 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   }
 
   // Function to delete a task from the database and refresh the task list
-  void _deleteTask(int index) async {
-    await _dbHelper.deleteTask(tasks[index]['id']);
+  void _deleteTask(int id) async {
+    await _dbHelper.deleteTask(id);
     _loadTasksFromDatabase();
   }
 
@@ -70,7 +71,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(date ?? 'Date', style: TextStyle(fontSize: 16)),
+                  title: Text(date ?? 'Select Date', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.calendar_today),
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
@@ -87,7 +88,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(time ?? 'Time', style: TextStyle(fontSize: 16)),
+                  title: Text(time ?? 'Select Time', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.access_time),
                   onTap: () async {
                     TimeOfDay? pickedTime = await showTimePicker(
@@ -107,6 +108,11 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                     if (taskName.isNotEmpty && date != null && time != null) {
                       _addTask(taskName, date!, time!);
                       Navigator.pop(context);
+                    } else {
+                      // Show an error message if fields are empty
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please fill all fields.')),
+                      );
                     }
                   },
                   child: Text('Save'),
@@ -148,7 +154,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(date ?? 'Date', style: TextStyle(fontSize: 16)),
+                  title: Text(date ?? 'Select Date', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.calendar_today),
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
@@ -165,7 +171,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(time ?? 'Time', style: TextStyle(fontSize: 16)),
+                  title: Text(time ?? 'Select Time', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.access_time),
                   onTap: () async {
                     TimeOfDay? pickedTime = await showTimePicker(
@@ -193,6 +199,11 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                       });
                       _loadTasksFromDatabase();
                       Navigator.pop(context);
+                    } else {
+                      // Show an error message if fields are empty
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please fill all fields.')),
+                      );
                     }
                   },
                   child: Text('Save Changes'),
@@ -215,7 +226,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         if (value == 'Edit') {
           _showEditTaskModal(index);
         } else if (value == 'Delete') {
-          _deleteTask(index);
+          _deleteTask(tasks[index]['id']); // Pass the task ID instead of index
         }
       },
       itemBuilder: (context) {
