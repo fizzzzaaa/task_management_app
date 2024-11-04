@@ -306,9 +306,17 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false, // Removes back button
       ),
-      body: Padding(
+      body: tasks.isEmpty
+          ? Center(
+        child: Text(
+          'No tasks added yet',
+          style: TextStyle(fontSize: 20, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
