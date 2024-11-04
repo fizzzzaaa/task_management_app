@@ -8,7 +8,13 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  final Box<Task> taskBox = Hive.box<Task>('tasksBox'); // Access the tasksBox
+  late Box<TaskModel> taskBox; // Declare taskBox
+
+  @override
+  void initState() {
+    super.initState();
+    taskBox = Hive.box<TaskModel>('tasks'); // Initialize taskBox in initState
+  }
 
   void _showTaskInputModal() {
     showModalBottomSheet(
@@ -43,8 +49,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _saveTask(taskName, taskDate, taskTime);
-                  Navigator.pop(context); // Close the modal
+                  if (taskName.isNotEmpty && taskDate.isNotEmpty && taskTime.isNotEmpty) {
+                    _saveTask(taskName, taskDate, taskTime);
+                    Navigator.pop(context); // Close the modal
+                  }
                 },
                 child: Text('Save Task'),
               ),
@@ -56,7 +64,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   void _saveTask(String name, String date, String time) {
-    final newTask = Task(title: name, date: date, time: time, isFavorite: true);
+    final newTask = TaskModel(title: name, date: date, time: time, isFavorite: true);
     taskBox.add(newTask); // Add the new task to the Hive box
   }
 
@@ -64,19 +72,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Favorites Tasks'),
+        title: Text('Favorite Tasks'),
         backgroundColor: Colors.brown[800],
         automaticallyImplyLeading: false,
       ),
       body: ValueListenableBuilder(
         valueListenable: taskBox.listenable(),
-        builder: (context, Box<Task> tasks, _) {
+        builder: (context, Box<TaskModel> tasks, _) {
           return ListView.builder(
             itemCount: tasks.length,
             itemBuilder: (context, index) {
               final task = tasks.getAt(index);
               return ListTile(
-                title: Text(task?.title ?? ''),
+                title: Text(task?.title ?? 'No Title'), // Updated to handle null
                 subtitle: Text('${task?.date} at ${task?.time}'),
               );
             },
