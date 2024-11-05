@@ -1,14 +1,12 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'task_model.dart';
+import 'task_model.dart'; // Ensure you have this import for your Task model
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  static Database? _database;
+  factory DatabaseHelper() => _instance;
 
-  factory DatabaseHelper() {
-    return _instance;
-  }
+  static Database? _database;
 
   DatabaseHelper._internal();
 
@@ -19,41 +17,37 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
+    String path = join(await getDatabasesPath(), 'tasks.db');
     return await openDatabase(
-      join(await getDatabasesPath(), 'tasks.db'),
+      path,
+      version: 1,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isCompleted INTEGER)',
+          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isFavorite INTEGER)',
         );
       },
-      version: 1,
     );
   }
 
-  Future<List<Task>> getAllTasks() async {
+  // Method to get favorite tasks
+  Future<List<Task>> getFavoriteTasks() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('tasks');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'tasks',
+      where: 'isFavorite = ?',
+      whereArgs: [1], // Assuming 1 indicates that the task is a favorite
+    );
 
     return List.generate(maps.length, (i) {
-      return Task.fromMap(maps[i]);
+      return Task(
+        id: maps[i]['id'],
+        title: maps[i]['title'],
+        date: maps[i]['date'],
+        time: maps[i]['time'],
+        // Add other fields if necessary
+      );
     });
   }
 
-  Future<void> insertTask(Task task) async {
-    final db = await database;
-    await db.insert(
-      'tasks',
-      task.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<void> deleteTask(int id) async {
-    final db = await database;
-    await db.delete(
-      'tasks',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
+// Add other database methods (insert, update, delete) here
 }
