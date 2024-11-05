@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_management_app/favorites_screen.dart';
-import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
-import 'package:task_management_app/all_tasks_screen.dart'; // Import the AllTasksScreen
+import 'package:task_management_app/todaytask.dart'; // Import the TodayTaskPage
 
 class CompletedScreen extends StatefulWidget {
   @override
@@ -20,13 +19,13 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AllTasksScreen()),
+          MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+          MaterialPageRoute(builder: (context) => FavoritesScreen()), // Navigate to FavoritesScreen
         );
         break;
       case 2:
@@ -35,7 +34,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CalendarScreen()),
+          MaterialPageRoute(builder: (context) => CalendarScreen()), // Navigate to CalendarScreen
         );
         break;
     }
@@ -49,7 +48,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.list, 'All Tasks', 0),
+            _buildNavButton(Icons.list, 'Today\'s Tasks', 0), // Navigate to TodayTaskPage
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),

@@ -9,29 +9,26 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  int _selectedIndex = 3; // Calendar tab is selected by default
+  int _selectedIndex = 2; // Calendar tab is selected by default
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
     switch (index) {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CalendarScreen()),
+          MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+          MaterialPageRoute(builder: (context) => FavoritesScreen()), // Navigate to FavoritesScreen
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CompletedScreen()),
+          MaterialPageRoute(builder: (context) => CompletedScreen()), // Navigate to CompletedScreen
         );
         break;
       case 3:
@@ -48,7 +45,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.list, 'All Tasks', 0),
+            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0), // Navigate to TodayTaskPage
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),

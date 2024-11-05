@@ -1,36 +1,48 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:task_management_app/todaytask.dart';
-import 'package:task_management_app/favorites_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'task_model.dart'; // Import your TaskModel where TaskModelAdapter is defined
+import 'todaytask.dart'; // Import TodayTaskPage
+import 'package:task_management_app/favorites_screen.dart' as favorites;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
+  await Hive.initFlutter(); // Initialize Hive
+  Hive.registerAdapter(TaskModelAdapter()); // Register the Task adapter
+  await Hive.openBox<TaskModel>('tasks'); // Open the box for tasks
+  runApp(MyApp()); // Run the app
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MainScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.brown,
+      ),
+      home: SplashScreen(), // Set the splash screen as the initial route
     );
   }
 }
 
-class MainScreen extends StatefulWidget {
+class SplashScreen extends StatefulWidget {
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 2), () {
+    _navigateToTodayTask();
+  }
+
+  void _navigateToTodayTask() {
+    Future.delayed(Duration(seconds: 3), () { // Display splash for 3 seconds
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => TodayTaskPage()), // Ye line unchanged hai
+        MaterialPageRoute(builder: (context) => TodayTaskPage()),
       );
     });
   }
@@ -43,8 +55,15 @@ class _MainScreenState extends State<MainScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/i1.png'), // Image ka path "i1" file ke liye
-            SizedBox(height: 20), // Text aur image ke beech thoda gap
+            SizedBox(
+              width: 100, // Set the desired width
+              height: 100, // Set the desired height
+              child: Image.asset(
+                'assets/image.webp',
+                fit: BoxFit.cover, // Adjust the image to fit the box
+              ),
+            ),
+            SizedBox(height: 20), // Gap between text and image
             Text(
               'TO-Do Tasks',
               style: TextStyle(fontSize: 24, color: Colors.white),
@@ -52,55 +71,6 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// Define the other screens here
-class TodayTaskPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Today\'s Tasks'),
-      ),
-      body: Center(child: Text('Today\'s Tasks Content')),
-    );
-  }
-}
-
-class FavoritesScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Favorites'),
-      ),
-      body: Center(child: Text('Favorites Content')),
-    );
-  }
-}
-
-class CompletedScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Completed Tasks'),
-      ),
-      body: Center(child: Text('Completed Tasks Content')),
-    );
-  }
-}
-
-class CalendarScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Calendar'),
-      ),
-      body: Center(child: Text('Calendar Content')),
     );
   }
 }
