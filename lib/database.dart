@@ -39,6 +39,20 @@ class DatabaseHelper {
     });
   }
 
+  // Method to fetch favorite tasks from the database
+  Future<List<Task>> getFavoriteTasks() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'tasks',
+      where: 'isFavorite = ?',
+      whereArgs: [1], // 1 represents true (favorite)
+    );
+
+    return List.generate(maps.length, (i) {
+      return Task.fromMap(maps[i]);
+    });
+  }
+
   // Method to insert a new task into the database
   Future<void> insertTask(Task task) async {
     final db = await database;
@@ -59,5 +73,5 @@ class DatabaseHelper {
     );
   }
 
-// Add other methods such as getFavoriteTasks, updateTask, etc.
+// Add other methods such as updateTask, etc.
 }
