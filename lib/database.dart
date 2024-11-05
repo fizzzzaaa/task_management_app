@@ -1,67 +1,50 @@
+// database.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'task_model.dart'; // Import your TaskModel
+import 'task_model.dart'; // Update this import if needed
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._privateConstructor();
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => _instance;
+
   static Database? _database;
 
-  DatabaseHelper._privateConstructor();
+  DatabaseHelper._internal();
 
-  static Future<Database> get database async {
+  Future<Database> get database async {
     if (_database != null) return _database!;
+
     _database = await _initDatabase();
     return _database!;
   }
 
-  static Future<Database> _initDatabase() async {
+  Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'tasks.db');
-    return await openDatabase(path, version: 1, onCreate: _createDatabase);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) {
+        return db.execute(
+          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT)',
+        );
+      },
+    );
   }
 
-  static Future<void> _createDatabase(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE tasks(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT,
-        date TEXT,
-        time TEXT,
-        repeatDay TEXT,
-        isFavorite INTEGER,
-        isCompleted INTEGER
-      )
-    ''');
+  Future<void> insertTask(Task task) async {
+    final db = await database;
+    await db.insert('tasks', task.toMap());
   }
 
-  // Method to get all tasks
-  Future<List<TaskModel>> getAllTasks() async {
+  Future<List<Task>> getAllTasks() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('tasks');
 
     return List.generate(maps.length, (i) {
-      return TaskModel(
-        id: maps[i]['id'],
-        title: maps[i]['title'],
-        date: maps[i]['date'],
-        time: maps[i]['time'],
-        repeatDay: maps[i]['repeatDay'],
-        isFavorite: maps[i]['isFavorite'] == 1,
-        isCompleted: maps[i]['isCompleted'] == 1,
-      );
+      return Task.fromMap(maps[i]);
     });
   }
 
-  // Method to insert a new task
-  Future<void> insertTask(TaskModel task) async {
-    final db = await database;
-    await db.insert(
-      'tasks',
-      task.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  // Method to delete a task
   Future<void> deleteTask(int id) async {
     final db = await database;
     await db.delete(

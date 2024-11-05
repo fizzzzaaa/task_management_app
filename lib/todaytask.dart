@@ -1,26 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:task_management_app/favorites_screen.dart';
-import 'package:task_management_app/completed_screen.dart';
-import 'package:task_management_app/calendar_screen.dart'; // Import CalendarScreen
-
-@HiveType(typeId: 0)
-class Task {
-  @HiveField(0)
-  final String title;
-  @HiveField(1)
-  final String date;
-  @HiveField(2)
-  final String time;
-  @HiveField(3)
-  bool isFavorite;
-  @HiveField(4)
-  bool isCompleted;
-
-  Task({required this.title, required this.date, required this.time, this.isFavorite = false, this.isCompleted = false});
-}
+import 'database.dart'; // Import the database helper
+import 'task_model.dart'; // Import the TaskItem
+import 'favorites_screen.dart';
+import 'completed_screen.dart';
+import 'calendar_screen.dart';
 
 class TodayTaskPage extends StatefulWidget {
   @override
@@ -28,8 +12,7 @@ class TodayTaskPage extends StatefulWidget {
 }
 
 class _TodayTaskPageState extends State<TodayTaskPage> {
-  List<Task> tasks = []; // Use List<Task> instead of List<Map<String, dynamic>>
-  final Box<Task> _taskBox = Hive.box<Task>('tasks');
+  List<Task> tasks = []; // Use List<TaskItem> to store tasks
   int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
 
   @override
@@ -39,20 +22,24 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   }
 
   Future<void> _loadTasksFromDatabase() async {
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    final allTasks = await dbHelper.getAllTasks(); // Query all tasks from the database
     setState(() {
-      tasks = _taskBox.values.toList(); // Get tasks from the Hive box
+      tasks = allTasks; // Update the state with the fetched tasks
     });
   }
 
-  void _addTask(String taskName, String date, String time) {
+  void _addTask(String taskName, String date, String time) async {
     final newTask = Task(title: taskName, date: date, time: time);
-    _taskBox.add(newTask); // Add the task to the Hive box
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(newTask); // Insert the task into the database
     _loadTasksFromDatabase(); // Reload tasks after addition
   }
 
   // Function to delete a task from the database and refresh the task list
-  void _deleteTask(int index) {
-    _taskBox.deleteAt(index); // Delete task from Hive
+  void _deleteTask(int id) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.deleteTask(id); // Delete task from the database
     _loadTasksFromDatabase(); // Refresh task list
   }
 
@@ -79,7 +66,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(date ?? 'Date', style: TextStyle(fontSize: 16)),
+                  title: Text(date ?? 'Select Date', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.calendar_today),
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
@@ -96,7 +83,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                 ),
                 ListTile(
-                  title: Text(time ?? 'Time', style: TextStyle(fontSize: 16)),
+                  title: Text(time ?? 'Select Time', style: TextStyle(fontSize: 16)),
                   trailing: Icon(Icons.access_time),
                   onTap: () async {
                     TimeOfDay? pickedTime = await showTimePicker(
@@ -133,6 +120,10 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
 
   // Function to handle bottom navigation
   void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // Update the selected index
+    });
+
     switch (index) {
       case 0:
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
@@ -177,9 +168,9 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'Edit') {
-                    // Functionality to edit task
+                    // Functionality to edit task can be implemented here
                   } else if (value == 'Delete') {
-                    _deleteTask(index);
+                    _deleteTask(tasks[index].id!); // Use the task ID for deletion
                   }
                 },
                 itemBuilder: (context) {
