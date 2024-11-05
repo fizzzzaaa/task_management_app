@@ -1,55 +1,42 @@
-import 'package:hive/hive.dart';
-// This will be generated after running build_runner
-
-@HiveType(typeId: 0) // Unique identifier for the Task type
 class TaskModel {
-  @HiveField(0)
+  final int? id; // Add an ID for database purposes
   final String title;
-
-  @HiveField(1)
   final String date;
-
-  @HiveField(2)
   final String time;
-
-  @HiveField(3)
   final bool isFavorite;
-
-  @HiveField(4)
   final bool isCompleted;
 
   // Updated constructor
   TaskModel({
+    this.id, // Make ID optional
     required this.title,
     required this.date,
     required this.time,
     this.isFavorite = false,
     this.isCompleted = false,
   });
-}
 
-// Define the TaskAdapter for Hive
-class TaskAdapter extends TypeAdapter<TaskModel> {
-  @override
-  final int typeId = 0;
-
-  @override
-  TaskModel read(BinaryReader reader) {
-    return TaskModel(
-      title: reader.read() as String,
-      date: reader.read() as String,
-      time: reader.read() as String,
-      isFavorite: reader.read() as bool,
-      isCompleted: reader.read() as bool,
-    );
+  // Convert a TaskModel into a Map. The Map is used as a JSON object.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date,
+      'time': time,
+      'isFavorite': isFavorite ? 1 : 0, // Convert bool to int for SQLite
+      'isCompleted': isCompleted ? 1 : 0, // Convert bool to int for SQLite
+    };
   }
 
-  @override
-  void write(BinaryWriter writer, TaskModel task) {
-    writer.write(task.title);
-    writer.write(task.date);
-    writer.write(task.time);
-    writer.write(task.isFavorite);
-    writer.write(task.isCompleted);
+  // Extract a TaskModel object from a Map
+  factory TaskModel.fromMap(Map<String, dynamic> map) {
+    return TaskModel(
+      id: map['id'],
+      title: map['title'],
+      date: map['date'],
+      time: map['time'],
+      isFavorite: map['isFavorite'] == 1, // Convert int back to bool
+      isCompleted: map['isCompleted'] == 1, // Convert int back to bool
+    );
   }
 }
