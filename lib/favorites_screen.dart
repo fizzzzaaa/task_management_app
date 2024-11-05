@@ -145,7 +145,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           // Implement mark as completed functionality here
             break;
           case 'delete':
-            _deleteTask(task.id); // Assuming `task.id` is available
+            _deleteTask(task.id!); // Use task.id for deletion, if it's included
             break;
         }
       }
