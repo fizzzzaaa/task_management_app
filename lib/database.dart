@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'task_model.dart'; // Ensure you have this import for your Task model
+import 'task_model.dart'; // Make sure this import is included
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -23,31 +23,41 @@ class DatabaseHelper {
       version: 1,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isFavorite INTEGER)',
+          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isFavorite INTEGER, isCompleted INTEGER)',
         );
       },
     );
   }
 
-  // Method to get favorite tasks
-  Future<List<Task>> getFavoriteTasks() async {
+  // Method to fetch all tasks from the database
+  Future<List<Task>> getAllTasks() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'tasks',
-      where: 'isFavorite = ?',
-      whereArgs: [1], // Assuming 1 indicates that the task is a favorite
-    );
+    final List<Map<String, dynamic>> maps = await db.query('tasks');
 
     return List.generate(maps.length, (i) {
-      return Task(
-        id: maps[i]['id'],
-        title: maps[i]['title'],
-        date: maps[i]['date'],
-        time: maps[i]['time'],
-        // Add other fields if necessary
-      );
+      return Task.fromMap(maps[i]);
     });
   }
 
-// Add other database methods (insert, update, delete) here
+  // Method to insert a new task into the database
+  Future<void> insertTask(Task task) async {
+    final db = await database;
+    await db.insert(
+      'tasks',
+      task.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace, // Replace if there is a conflict
+    );
+  }
+
+  // Method to delete a task by ID from the database
+  Future<void> deleteTask(int id) async {
+    final db = await database;
+    await db.delete(
+      'tasks',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+// Add other methods such as getFavoriteTasks, updateTask, etc.
 }
