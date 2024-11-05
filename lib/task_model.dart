@@ -4,12 +4,14 @@ class Task {
   final String title;
   final String date;
   final String time;
+  final bool isFavorite; // Add isFavorite property
 
   Task({
     this.id,
     required this.title,
     required this.date,
     required this.time,
+    this.isFavorite = false,
   });
 
   // Convert a Task into a Map. The Map is used as a JSON-like structure.
@@ -19,6 +21,7 @@ class Task {
       'title': title,
       'date': date,
       'time': time,
+      'isFavorite': isFavorite, // Include isFavorite in the map
     };
   }
 
@@ -29,6 +32,7 @@ class Task {
       title: map['title'] as String,
       date: map['date'] as String,
       time: map['time'] as String,
+      isFavorite: map['isFavorite'] as bool? ?? false, // Default to false if not present
     );
   }
 }

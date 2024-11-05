@@ -1,40 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-
-// Define the Task model directly in this file
-class TaskModel {
-  final String title;
-  final String date;
-  final String time;
-  final bool isFavorite;
-
-  TaskModel({
-    required this.title,
-    required this.date,
-    required this.time,
-    this.isFavorite = false,
-  });
-
-  // Method to convert TaskModel to a Map
-  Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'date': date,
-      'time': time,
-      'isFavorite': isFavorite,
-    };
-  }
-
-  // Method to create TaskModel from a Map
-  factory TaskModel.fromMap(Map<String, dynamic> map) {
-    return TaskModel(
-      title: map['title'],
-      date: map['date'],
-      time: map['time'],
-      isFavorite: map['isFavorite'] ?? false,
-    );
-  }
-}
+import 'database.dart'; // Import your SQLite database helper
+import 'task_model.dart'; // Import your Task model
 
 class FavoritesScreen extends StatefulWidget {
   @override
@@ -42,12 +8,20 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  late Box<Map<String, dynamic>> taskBox; // Declare taskBox
+  List<Task> favoriteTasks = []; // List to hold favorite tasks
 
   @override
   void initState() {
     super.initState();
-    taskBox = Hive.box<Map<String, dynamic>>('tasks'); // Initialize taskBox in initState
+    _loadFavoriteTasks(); // Load favorite tasks on initialization
+  }
+
+  Future<void> _loadFavoriteTasks() async {
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    final tasks = await dbHelper.getAllTasks(); // Fetch all tasks from the database
+    setState(() {
+      favoriteTasks = tasks.where((task) => task.isFavorite).toList(); // Filter for favorite tasks
+    });
   }
 
   void _showTaskInputModal() {
@@ -97,9 +71,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  void _saveTask(String name, String date, String time) {
-    final newTask = TaskModel(title: name, date: date, time: time, isFavorite: true);
-    taskBox.add(newTask.toMap()); // Add the new task to the Hive box
+  Future<void> _saveTask(String name, String date, String time) async {
+    final newTask = Task(
+      title: name,
+      date: date,
+      time: time,
+      isFavorite: true, // Set isFavorite to true for favorite tasks
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(newTask); // Insert the task into the SQLite database
+    _loadFavoriteTasks(); // Reload favorite tasks after addition
   }
 
   @override
@@ -110,19 +91,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         backgroundColor: Colors.brown[800],
         automaticallyImplyLeading: false,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: taskBox.listenable(),
-        builder: (context, Box<Map<String, dynamic>> tasks, _) {
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final taskData = tasks.getAt(index);
-              final task = TaskModel.fromMap(taskData!); // Convert Map to TaskModel
-              return ListTile(
-                title: Text(task.title),
-                subtitle: Text('${task.date} at ${task.time}'),
-              );
-            },
+      body: ListView.builder(
+        itemCount: favoriteTasks.length,
+        itemBuilder: (context, index) {
+          final task = favoriteTasks[index];
+          return ListTile(
+            title: Text(task.title),
+            subtitle: Text('${task.date} at ${task.time}'),
           );
         },
       ),
