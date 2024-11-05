@@ -1,54 +1,45 @@
-import 'package:hive/hive.dart';
-
-// Define the TaskModel class
-@HiveType(typeId: 0) // Unique identifier for the Task type
 class TaskModel {
-  @HiveField(0)
+  final int? id; // Nullable for new tasks that haven't been inserted yet
   final String title;
-
-  @HiveField(1)
   final String date;
-
-  @HiveField(2)
   final String time;
-
-  @HiveField(3)
+  final String repeatDay;
   final bool isFavorite;
-
-  @HiveField(4)
   final bool isCompleted;
 
   TaskModel({
+    this.id,
     required this.title,
     required this.date,
     required this.time,
+    this.repeatDay = '',
     this.isFavorite = false,
     this.isCompleted = false,
   });
-}
 
-// Define the TaskModelAdapter for Hive
-class TaskModelAdapter extends TypeAdapter<TaskModel> {
-  @override
-  final int typeId = 0;
-
-  @override
-  TaskModel read(BinaryReader reader) {
-    return TaskModel(
-      title: reader.readString(),
-      date: reader.readString(),
-      time: reader.readString(),
-      isFavorite: reader.readBool(),
-      isCompleted: reader.readBool(),
-    );
+  // Convert a TaskModel into a Map object
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date,
+      'time': time,
+      'repeatDay': repeatDay,
+      'isFavorite': isFavorite ? 1 : 0,
+      'isCompleted': isCompleted ? 1 : 0,
+    };
   }
 
-  @override
-  void write(BinaryWriter writer, TaskModel task) {
-    writer.writeString(task.title);
-    writer.writeString(task.date);
-    writer.writeString(task.time);
-    writer.writeBool(task.isFavorite);
-    writer.writeBool(task.isCompleted);
+  // Extract a TaskModel from a Map object
+  factory TaskModel.fromMap(Map<String, dynamic> map) {
+    return TaskModel(
+      id: map['id'],
+      title: map['title'],
+      date: map['date'],
+      time: map['time'],
+      repeatDay: map['repeatDay'],
+      isFavorite: map['isFavorite'] == 1,
+      isCompleted: map['isCompleted'] == 1,
+    );
   }
 }
