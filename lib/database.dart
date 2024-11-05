@@ -1,39 +1,33 @@
-// database.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'task_model.dart'; // Update this import if needed
+import 'task_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-
   static Database? _database;
+
+  factory DatabaseHelper() {
+    return _instance;
+  }
 
   DatabaseHelper._internal();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-
     _database = await _initDatabase();
     return _database!;
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'tasks.db');
     return await openDatabase(
-      path,
-      version: 1,
+      join(await getDatabasesPath(), 'tasks.db'),
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT)',
+          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isCompleted INTEGER)',
         );
       },
+      version: 1,
     );
-  }
-
-  Future<void> insertTask(Task task) async {
-    final db = await database;
-    await db.insert('tasks', task.toMap());
   }
 
   Future<List<Task>> getAllTasks() async {
@@ -43,6 +37,15 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return Task.fromMap(maps[i]);
     });
+  }
+
+  Future<void> insertTask(Task task) async {
+    final db = await database;
+    await db.insert(
+      'tasks',
+      task.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> deleteTask(int id) async {
