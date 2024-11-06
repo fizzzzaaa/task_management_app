@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'database.dart'; // Import the database helper
-import 'task_model.dart'; // Import the TaskItem
+import 'task_model.dart'; // Import the Task model
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
@@ -12,7 +12,7 @@ class TodayTaskPage extends StatefulWidget {
 }
 
 class _TodayTaskPageState extends State<TodayTaskPage> {
-  List<Task> tasks = []; // Use List<TaskItem> to store tasks
+  List<Task> tasks = []; // Use List<Task> to store tasks
   int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
 
   @override
@@ -29,11 +29,13 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     });
   }
 
-  void _addTask(String taskName, String date, String time) async {
-    final newTask = Task(title: taskName, date: date, time: time);
+  void _addTask(String taskName, String date, String time, String repeat) async {
+    final newTask = Task(title: taskName, date: date, time: time, repeat: repeat);
     final dbHelper = DatabaseHelper();
     await dbHelper.insertTask(newTask); // Insert the task into the database
-    _loadTasksFromDatabase(); // Reload tasks after addition
+    setState(() {
+      tasks.add(newTask); // Immediately add the new task to the list
+    });
   }
 
   // Function to delete a task from the database and refresh the task list
@@ -48,6 +50,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     String taskName = '';
     String? date;
     String? time;
+    String repeat = 'Never'; // Default repeat option
 
     showModalBottomSheet(
       context: context,
@@ -97,11 +100,27 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                     }
                   },
                 ),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Repeat'),
+                  value: repeat,
+                  items: <String>['Never', 'Daily', 'Weekly', 'Monthly']
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      repeat = newValue!;
+                    });
+                  },
+                ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (taskName.isNotEmpty && date != null && time != null) {
-                      _addTask(taskName, date!, time!);
+                      _addTask(taskName, date!, time!, repeat);
                       Navigator.pop(context);
                     }
                   },
@@ -164,7 +183,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             margin: EdgeInsets.all(10),
             child: ListTile(
               title: Text(tasks[index].title),
-              subtitle: Text('${tasks[index].date} at ${tasks[index].time}'),
+              subtitle: Text('${tasks[index].date} at ${tasks[index].time}\nRepeats: ${tasks[index].repeat}'),
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'Edit') {
