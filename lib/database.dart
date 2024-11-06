@@ -23,7 +23,8 @@ class DatabaseHelper {
       version: 1,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isFavorite INTEGER, isCompleted INTEGER)',
+          // Added repeat column as TEXT
+          'CREATE TABLE tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date TEXT, time TEXT, isFavorite INTEGER, isCompleted INTEGER, repeat TEXT)',
         );
       },
     );
