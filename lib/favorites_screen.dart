@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'database.dart'; // Import your SQLite database helper
 import 'task_model.dart'; // Import your Task model
-import 'todaytask.dart';
+import 'todaytask.dart'; // Correct the import for TodayTaskPage
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
+import 'menu.dart';
 
 class FavoritesScreen extends StatefulWidget {
   @override
@@ -50,7 +51,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => TodayTaskPage()),
+          MaterialPageRoute(builder: (context) => TodayTaskPage()), // Ensure the correct file is used
         );
         break;
       case 1:
@@ -122,13 +123,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0),
+            _buildNavButton(Icons.check_circle, 'Tasks', 0),
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800], // Purple AppBar background
         automaticallyImplyLeading: false,
       ),
       body: isLoading
@@ -140,10 +141,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         itemBuilder: (context, index) {
           final task = favoriteTasks[index];
           return ListTile(
-            title: Text(task.title),
-            subtitle: Text('${task.date} at ${task.time}'),
+            title: Text(task.title, style: TextStyle(color: Colors.purple[800])), // Purple text for tasks
+            subtitle: Text('${task.date} at ${task.time}', style: TextStyle(color: Colors.purple[600])), // Purple subtitle
             trailing: IconButton(
-              icon: Icon(Icons.more_vert),
+              icon: Icon(Icons.more_vert, color: Colors.purple[800]), // Purple icon
               onPressed: () => _showTaskOptionsMenu(task), // Show task options menu
             ),
           );
@@ -162,12 +163,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         children: [
           Icon(
             icon,
-            color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+            color: _selectedIndex == index ? Colors.white : Colors.purple[200],
           ),
           Text(
             label,
             style: TextStyle(
-              color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+              color: _selectedIndex == index ? Colors.white : Colors.purple[200],
               fontSize: 12,
             ),
           ),

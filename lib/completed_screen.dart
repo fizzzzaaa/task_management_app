@@ -4,6 +4,7 @@ import 'task_model.dart'; // Import the Task model
 import 'todaytask.dart';
 import 'favorites_screen.dart';
 import 'calendar_screen.dart';
+import 'menu.dart';
 
 class CompletedScreen extends StatefulWidget {
   @override
@@ -81,13 +82,13 @@ class _CompletedScreenState extends State<CompletedScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0),
+            _buildNavButton(Icons.check_circle, 'Tasks', 0),
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800],
         automaticallyImplyLeading: false,
       ),
       body: isLoading

@@ -55,11 +55,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       backgroundColor: Colors.purple[50], // Light purple background for screen
       appBar: AppBar(
-        backgroundColor: Colors.purple[900], // Dark purple navbar
+        backgroundColor: Colors.purple[800], // Dark purple navbar
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0),
+            _buildNavButton(Icons.check_circle, 'Tasks', 0),
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
