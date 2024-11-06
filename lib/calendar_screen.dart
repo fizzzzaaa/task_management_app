@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:task_management_app/favorites_screen.dart';
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/todaytask.dart';
@@ -10,12 +11,16 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   int _selectedIndex = 3; // Calendar tab is selected by default
+  CalendarFormat _calendarFormat = CalendarFormat.month; // Month view by default
+  DateTime _focusedDay = DateTime.now();
+  int _selectedYear = DateTime.now().year;
+  int _selectedMonth = DateTime.now().month;
 
   // Handle tab selection and navigation
   void _onItemTapped(int index) {
     if (_selectedIndex != index) {
       setState(() {
-        _selectedIndex = index; // Update the selected index
+        _selectedIndex = index;
       });
 
       // Navigate based on the selected index
@@ -23,19 +28,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
         case 0:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage
+            MaterialPageRoute(builder: (context) => TodayTaskPage()),
           );
           break;
         case 1:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => FavoritesScreen()), // Navigate to FavoritesScreen
+            MaterialPageRoute(builder: (context) => FavoritesScreen()),
           );
           break;
         case 2:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => CompletedScreen()), // Navigate to CompletedScreen
+            MaterialPageRoute(builder: (context) => CompletedScreen()),
           );
           break;
         case 3:
@@ -48,24 +53,133 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.purple[50], // Light purple background for screen
       appBar: AppBar(
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[900], // Dark purple navbar
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0), // Navigate to TodayTaskPage
+            _buildNavButton(Icons.check_circle, 'Today\'s Tasks', 0),
             _buildNavButton(Icons.favorite, 'Favorites', 1),
             _buildNavButton(Icons.check_circle, 'Completed', 2),
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        automaticallyImplyLeading: false, // Removes back button
+        automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: Text(
-          'Calendar Screen Content Here',
-          style: TextStyle(fontSize: 20),
-        ),
+      body: Column(
+        children: [
+          // Dropdown menus for year and month selection
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Year Dropdown
+              DropdownButton<int>(
+                value: _selectedYear,
+                dropdownColor: Colors.purple[100], // Light purple dropdown background
+                style: TextStyle(color: Colors.purple[800]), // Text color in dropdown items
+                items: List.generate(
+                  50,
+                      (index) => DropdownMenuItem(
+                    value: DateTime.now().year - 25 + index,
+                    child: Text(
+                      (DateTime.now().year - 25 + index).toString(),
+                      style: TextStyle(color: Colors.purple[800]), // Item text color
+                    ),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedYear = value!;
+                    _focusedDay = DateTime(_selectedYear, _selectedMonth);
+                  });
+                },
+              ),
+              SizedBox(width: 10),
+              // Month Dropdown
+              DropdownButton<int>(
+                value: _selectedMonth,
+                dropdownColor: Colors.purple[100], // Light purple dropdown background
+                style: TextStyle(color: Colors.purple[800]), // Text color in dropdown items
+                items: List.generate(
+                  12,
+                      (index) => DropdownMenuItem(
+                    value: index + 1,
+                    child: Text(
+                      DateTime(0, index + 1).month.toString(),
+                      style: TextStyle(color: Colors.purple[800]), // Item text color
+                    ),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedMonth = value!;
+                    _focusedDay = DateTime(_selectedYear, _selectedMonth);
+                  });
+                },
+              ),
+            ],
+          ),
+          // Calendar container with a smaller, light purple background
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.purple[100], // Light purple background for calendar
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 3,
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+              child: TableCalendar(
+                focusedDay: _focusedDay,
+                firstDay: DateTime(2000),
+                lastDay: DateTime(2100),
+                calendarFormat: _calendarFormat,
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                onPageChanged: (focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                  });
+                },
+                headerStyle: HeaderStyle(
+                  titleTextStyle: TextStyle(color: Colors.purple[700]), // Purple month name
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                ),
+                daysOfWeekStyle: DaysOfWeekStyle(
+                  weekendStyle: TextStyle(color: Colors.purple[700]), // Purple weekend days
+                  weekdayStyle: TextStyle(color: Colors.purple[700]), // Purple weekdays
+                ),
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.purple[300],
+                    shape: BoxShape.circle,
+                  ),
+                  selectedDecoration: BoxDecoration(
+                    color: Colors.purple[400],
+                    shape: BoxShape.circle,
+                  ),
+                  weekendTextStyle: TextStyle(color: Colors.purple[700]),
+                  defaultTextStyle: TextStyle(color: Colors.black),
+                  outsideDaysVisible: false,
+                  rowDecoration: BoxDecoration(
+                    color: Colors.purple[200], // Slightly darker purple for week row
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -80,12 +194,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           Icon(
             icon,
-            color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+            color: _selectedIndex == index ? Colors.white : Colors.purple[200],
           ),
           Text(
             label,
             style: TextStyle(
-              color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+              color: Colors.white, // White text color for navbar items
               fontSize: 12,
             ),
           ),
