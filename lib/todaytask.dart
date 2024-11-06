@@ -5,6 +5,7 @@ import 'task_model.dart'; // Import the Task model
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
+import 'menu.dart';
 
 class TodayTaskPage extends StatefulWidget {
   @override
@@ -30,7 +31,12 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   }
 
   void _addTask(String taskName, String date, String time, String repeat) async {
-    final newTask = Task(title: taskName, date: date, time: time, repeat: repeat);
+    final newTask = Task(
+      title: taskName,
+      date: date,
+      time: time,
+      repeat: repeat,
+    );
     final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
     await dbHelper.insertTask(newTask); // Insert the task into the database
     _loadTasksFromDatabase(); // Refresh the tasks list after adding a new task
@@ -162,23 +168,24 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
+  // Adjust the navigation when bottom navigation item is tapped
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index; // Update the selected index
     });
 
+    // Navigation logic for the bottom navigation buttons
     switch (index) {
       case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
-        break;
+        break; // No action needed because this page is the default
       case 1:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
         break;
       case 2:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
         break;
       case 3:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
         break;
     }
   }
@@ -254,6 +261,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
+  // Build navigation buttons for each section
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () {
