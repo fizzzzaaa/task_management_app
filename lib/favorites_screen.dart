@@ -12,8 +12,7 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   List<Task> favoriteTasks = []; // List to hold favorite tasks
-  String? taskDate; // To hold the selected date
-  String? taskTime; // To hold the selected time
+  bool isLoading = true; // Loading state for fetching tasks
   int _selectedIndex = 1; // Set default index to 1 to highlight Favorites tab
 
   @override
@@ -23,100 +22,62 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Future<void> _loadFavoriteTasks() async {
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    final tasks = await dbHelper.getAllTasks(); // Fetch all tasks from the database
+    try {
+      final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+      final tasks = await dbHelper.fetchTasks(); // Fetch all tasks from the database
+      setState(() {
+        favoriteTasks = tasks.where((task) => task.isFavorite).toList(); // Filter for favorite tasks
+        isLoading = false; // Set loading state to false after tasks are fetched
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false; // Set loading state to false if there is an error
+      });
+      // Optionally, show a message if fetching tasks fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load favorite tasks.')),
+      );
+    }
+  }
+
+  // Function to handle bottom navigation
+  void _onItemTapped(int index) {
     setState(() {
-      favoriteTasks = tasks.where((task) => task.isFavorite).toList(); // Filter for favorite tasks
+      _selectedIndex = index;
     });
-  }
 
-  void _showTaskInputModal() {
-    String taskName = ''; // Variable to hold the task name
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: 'Task Name'),
-                onChanged: (value) {
-                  taskName = value; // Save task name input
-                },
-              ),
-              TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: taskDate == null ? 'Select Date' : taskDate,
-                  suffixIcon: Icon(Icons.calendar_today),
-                ),
-                onTap: () async {
-                  final pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      taskDate = '${pickedDate.toLocal()}'.split(' ')[0];
-                    });
-                  }
-                },
-              ),
-              TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: taskTime == null ? 'Select Time' : taskTime,
-                  suffixIcon: Icon(Icons.access_time),
-                ),
-                onTap: () async {
-                  final pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      taskTime = pickedTime.format(context);
-                    });
-                  }
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (taskName.isNotEmpty && taskDate != null && taskTime != null) {
-                    _saveTask(taskName, taskDate!, taskTime!);
-                    Navigator.pop(context); // Close the modal
-                  }
-                },
-                child: Text('Save Task'),
-              ),
-            ],
-          ),
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TodayTaskPage()),
         );
-      },
-    );
-  }
-
-  Future<void> _saveTask(String name, String date, String time) async {
-    final newTask = Task(
-      title: name,
-      date: date,
-      time: time,
-      isFavorite: true,
-    );
-    final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(newTask);
-    _loadFavoriteTasks(); // Reload favorite tasks after addition
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CompletedScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CalendarScreen()),
+        );
+        break;
+    }
   }
 
   Future<void> _deleteTask(int id) async {
-    final dbHelper = DatabaseHelper();
-    await dbHelper.deleteTask(id);
-    _loadFavoriteTasks();
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    await dbHelper.deleteTask(id); // Delete the task by ID
+    _loadFavoriteTasks(); // Reload tasks after deletion
   }
 
   void _showTaskOptionsMenu(Task task) {
@@ -154,28 +115,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
   }
 
-  // Function to handle bottom navigation
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
-        break;
-      case 1:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
-        break;
-      case 2:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
-        break;
-      case 3:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,8 +131,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         backgroundColor: Colors.brown[800],
         automaticallyImplyLeading: false,
       ),
-      body: favoriteTasks.isEmpty
-          ? Center(child: Text('No favorite tasks available.'))
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading spinner
+          : favoriteTasks.isEmpty
+          ? Center(child: Text('No favorite tasks available.')) // No favorite tasks
           : ListView.builder(
         itemCount: favoriteTasks.length,
         itemBuilder: (context, index) {
@@ -203,7 +144,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             subtitle: Text('${task.date} at ${task.time}'),
             trailing: IconButton(
               icon: Icon(Icons.more_vert),
-              onPressed: () => _showTaskOptionsMenu(task),
+              onPressed: () => _showTaskOptionsMenu(task), // Show task options menu
             ),
           );
         },
@@ -211,6 +152,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  // Custom widget to create navigation buttons
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () {

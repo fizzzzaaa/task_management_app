@@ -13,6 +13,7 @@ class CompletedScreen extends StatefulWidget {
 class _CompletedScreenState extends State<CompletedScreen> {
   List<Task> completedTasks = []; // List to hold completed tasks
   int _selectedIndex = 2; // Set default index to 2 to highlight Completed tab
+  bool isLoading = true; // Loading state for fetching tasks
 
   @override
   void initState() {
@@ -22,10 +23,21 @@ class _CompletedScreenState extends State<CompletedScreen> {
 
   Future<void> _loadCompletedTasks() async {
     final dbHelper = DatabaseHelper(); // Get the instance of DatabaseHelper
-    final tasks = await dbHelper.getAllTasks(); // Fetch all tasks from the database
-    setState(() {
-      completedTasks = tasks.where((task) => task.isCompleted).toList(); // Filter completed tasks
-    });
+    try {
+      final tasks = await dbHelper.fetchTasks(); // Fetch all tasks from the database
+      setState(() {
+        completedTasks = tasks.where((task) => task.isCompleted).toList(); // Filter completed tasks
+        isLoading = false; // Set loading state to false after tasks are fetched
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false; // Set loading state to false in case of error
+      });
+      // Optionally, show an error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load completed tasks.')),
+      );
+    }
   }
 
   // Function to handle bottom navigation
@@ -36,16 +48,28 @@ class _CompletedScreenState extends State<CompletedScreen> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TodayTaskPage()),
+        );
         break;
       case 1:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+        );
         break;
       case 2:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CompletedScreen()),
+        );
         break;
       case 3:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CalendarScreen()),
+        );
         break;
     }
   }
@@ -66,7 +90,9 @@ class _CompletedScreenState extends State<CompletedScreen> {
         backgroundColor: Colors.brown[800],
         automaticallyImplyLeading: false,
       ),
-      body: completedTasks.isEmpty
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading spinner while data is being fetched
+          : completedTasks.isEmpty
           ? Center(child: Text('No completed tasks available.'))
           : ListView.builder(
         itemCount: completedTasks.length,
@@ -80,6 +106,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
     );
   }
 
+  // Custom widget to create navigation buttons
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () {

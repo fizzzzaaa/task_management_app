@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'task_model.dart'; // Import your TaskModel where TaskModelAdapter is defined
-import 'todaytask.dart'; // Import TodayTaskPage
+import 'database.dart'; // Import your DatabaseHelper
+import 'task_model.dart'; // Import your Task model
+import 'todaytask.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:task_management_app/favorites_screen.dart' as favorites;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
-  await Hive.initFlutter(); // Initialize Hive
-  Hive.registerAdapter(TaskModelAdapter()); // Register the Task adapter
-  await Hive.openBox<TaskModel>('tasks'); // Open the box for tasks
+  final dbHelper = DatabaseHelper();
+  await dbHelper.database; // This will initialize the database automatically
   runApp(MyApp()); // Run the app
 }
 
@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(Duration(seconds: 3), () { // Display splash for 3 seconds
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => TodayTaskPage()),
+        MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage after splash
       );
     });
   }

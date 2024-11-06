@@ -12,7 +12,7 @@ class TodayTaskPage extends StatefulWidget {
 }
 
 class _TodayTaskPageState extends State<TodayTaskPage> {
-  List<Task> tasks = []; // Use List<Task> to store tasks
+  List<Task> tasks = []; // List to hold tasks retrieved from the database
   int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
 
   @override
@@ -23,29 +23,57 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
 
   Future<void> _loadTasksFromDatabase() async {
     final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    final allTasks = await dbHelper.getAllTasks(); // Query all tasks from the database
+    final allTasks = await dbHelper.fetchTasks(); // Get all tasks from the database
     setState(() {
-      tasks = allTasks; // Update the state with the fetched tasks
+      tasks = allTasks; // Update the tasks list with the fetched tasks
     });
   }
 
   void _addTask(String taskName, String date, String time, String repeat) async {
     final newTask = Task(title: taskName, date: date, time: time, repeat: repeat);
-    final dbHelper = DatabaseHelper();
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
     await dbHelper.insertTask(newTask); // Insert the task into the database
-    setState(() {
-      tasks.add(newTask); // Immediately add the new task to the list
-    });
+    _loadTasksFromDatabase(); // Refresh the tasks list after adding a new task
   }
 
-  // Function to delete a task from the database and refresh the task list
   void _deleteTask(int id) async {
-    final dbHelper = DatabaseHelper();
-    await dbHelper.deleteTask(id); // Delete task from the database
-    _loadTasksFromDatabase(); // Refresh task list
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    await dbHelper.deleteTask(id); // Delete the task from the database
+    _loadTasksFromDatabase(); // Refresh the task list after deletion
   }
 
-  // Function to show the input modal for adding a new task
+  // Toggle completion status by creating a new Task instance with updated isCompleted status
+  void _toggleTaskCompletion(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      isFavorite: task.isFavorite,
+      isCompleted: !task.isCompleted,
+      repeat: task.repeat,
+    );
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    await dbHelper.updateTask(updatedTask); // Update the task in the database
+    _loadTasksFromDatabase(); // Refresh the tasks list
+  }
+
+  // Toggle favorite status by creating a new Task instance with updated isFavorite status
+  void _toggleTaskFavorite(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      isFavorite: !task.isFavorite,
+      isCompleted: task.isCompleted,
+      repeat: task.repeat,
+    );
+    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    await dbHelper.updateTask(updatedTask); // Update the task in the database
+    _loadTasksFromDatabase(); // Refresh the tasks list
+  }
+
   void _showTaskInputModal() {
     String taskName = '';
     String? date;
@@ -105,14 +133,11 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   value: repeat,
                   items: <String>['Never', 'Daily', 'Weekly', 'Monthly']
                       .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
                   onChanged: (newValue) {
                     setState(() {
-                      repeat = newValue!;
+                      repeat = newValue!; // Update the repeat option
                     });
                   },
                 ),
@@ -121,7 +146,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   onPressed: () {
                     if (taskName.isNotEmpty && date != null && time != null) {
                       _addTask(taskName, date!, time!, repeat);
-                      Navigator.pop(context);
+                      Navigator.pop(context); // Close the modal after saving
                     }
                   },
                   child: Text('Save'),
@@ -137,7 +162,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
-  // Function to handle bottom navigation
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index; // Update the selected index
@@ -159,7 +183,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     }
   }
 
-  // Build method for rendering UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,26 +207,40 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             child: ListTile(
               title: Text(tasks[index].title),
               subtitle: Text('${tasks[index].date} at ${tasks[index].time}\nRepeats: ${tasks[index].repeat}'),
-              trailing: PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'Edit') {
-                    // Functionality to edit task can be implemented here
-                  } else if (value == 'Delete') {
-                    _deleteTask(tasks[index].id!); // Use the task ID for deletion
-                  }
-                },
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem(
-                      value: 'Edit',
-                      child: Text('Edit'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: tasks[index].isFavorite ? Colors.red : Colors.grey,
                     ),
-                    PopupMenuItem(
-                      value: 'Delete',
-                      child: Text('Delete'),
+                    onPressed: () {
+                      _toggleTaskFavorite(tasks[index]);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      tasks[index].isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: tasks[index].isCompleted ? Colors.green : Colors.grey,
                     ),
-                  ];
-                },
+                    onPressed: () {
+                      _toggleTaskCompletion(tasks[index]);
+                    },
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'Delete') {
+                        _deleteTask(tasks[index].id!); // Delete task by ID
+                      }
+                    },
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(value: 'Delete', child: Text('Delete')),
+                      ];
+                    },
+                  ),
+                ],
               ),
             ),
           );

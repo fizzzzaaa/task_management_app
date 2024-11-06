@@ -1,11 +1,11 @@
 class Task {
-  final int? id; // Use nullable int for ID
+  final int? id;
   final String title;
   final String date;
   final String time;
-  final bool isFavorite; // Indicates if the task is a favorite
-  final bool isCompleted; // Indicates if the task is completed
-  final String repeat; // New field for repeat frequency
+  final bool isFavorite;
+  final bool isCompleted;
+  final String repeat; // New repeat field
 
   Task({
     this.id,
@@ -14,32 +14,32 @@ class Task {
     required this.time,
     this.isFavorite = false,
     this.isCompleted = false,
-    this.repeat = 'None', // Default value for repeat
+    this.repeat = 'Never', // Default value
   });
 
-  // Convert a Task into a Map. The Map is used as a JSON-like structure.
+  // Convert Task to Map (for SQFlite)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'date': date,
       'time': time,
-      'isFavorite': isFavorite,
-      'isCompleted': isCompleted,
-      'repeat': repeat, // Include repeat in the map
+      'isFavorite': isFavorite ? 1 : 0,
+      'isCompleted': isCompleted ? 1 : 0,
+      'repeat': repeat, // Include repeat field
     };
   }
 
-  // Convert a Map into a Task. This is the reverse of the above.
-  factory Task.fromMap(Map<String, dynamic> map) {
+  // Convert Map to Task (from SQFlite)
+  static Task fromMap(Map<String, dynamic> map) {
     return Task(
-      id: map['id'] as int?,
-      title: map['title'] as String,
-      date: map['date'] as String,
-      time: map['time'] as String,
-      isFavorite: map['isFavorite'] as bool? ?? false, // Default to false if not present
-      isCompleted: map['isCompleted'] as bool? ?? false, // Default to false if not present
-      repeat: map['repeat'] as String? ?? 'None', // Default to 'None' if not present
+      id: map['id'],
+      title: map['title'],
+      date: map['date'],
+      time: map['time'],
+      isFavorite: map['isFavorite'] == 1,
+      isCompleted: map['isCompleted'] == 1,
+      repeat: map['repeat'], // Handle repeat field
     );
   }
 }

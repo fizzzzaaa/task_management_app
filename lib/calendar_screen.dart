@@ -9,31 +9,39 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  int _selectedIndex = 2; // Calendar tab is selected by default
+  int _selectedIndex = 3; // Calendar tab is selected by default
 
+  // Handle tab selection and navigation
   void _onItemTapped(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen()), // Navigate to FavoritesScreen
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => CompletedScreen()), // Navigate to CompletedScreen
-        );
-        break;
-      case 3:
-      // Already in CalendarScreen, do nothing
-        break;
+    if (_selectedIndex != index) {
+      setState(() {
+        _selectedIndex = index; // Update the selected index
+      });
+
+      // Navigate based on the selected index
+      switch (index) {
+        case 0:
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage
+          );
+          break;
+        case 1:
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => FavoritesScreen()), // Navigate to FavoritesScreen
+          );
+          break;
+        case 2:
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CompletedScreen()), // Navigate to CompletedScreen
+          );
+          break;
+        case 3:
+        // Already on CalendarScreen, do nothing
+          break;
+      }
     }
   }
 
@@ -62,6 +70,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  // Custom widget to create navigation buttons
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () {
