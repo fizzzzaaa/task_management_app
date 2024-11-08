@@ -5,6 +5,7 @@ import 'todaytask.dart' as todaytask;
 import 'favorites_screen.dart';
 import 'calendar_screen.dart';
 import 'menu.dart';
+import 'notif.dart'; // Import the notification system
 
 class CompletedScreen extends StatefulWidget {
   final Function toggleTheme;
@@ -52,13 +53,11 @@ class _CompletedScreenState extends State<CompletedScreen> {
       setState(() {
         completedTasks.removeWhere((task) => task.id == taskId); // Remove task from list
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task deleted successfully.')),
-      );
+      // Show notification for successful task deletion
+      showTaskNotification(context, 'Task deleted successfully.');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete task.')),
-      );
+      // Show notification for failure to delete task
+      showTaskNotification(context, 'Failed to delete task.');
     }
   }
 

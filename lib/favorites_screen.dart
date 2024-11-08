@@ -6,6 +6,7 @@ import 'package:task_management_app/favorites_screen.dart' as favorites;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
 import 'menu.dart'; // If required, keep this import
+import 'notif.dart'; // Import the notification system
 
 class FavoritesScreen extends StatefulWidget {
   final Function toggleTheme; // Add toggleTheme parameter
@@ -81,6 +82,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id); // Delete the task by ID
     _loadFavoriteTasks(); // Reload tasks after deletion
+    showTaskNotification(context, 'Task Deleted Successfully!'); // Show notification
   }
 
   void _showTaskOptionsMenu(Task task) {
@@ -97,9 +99,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         switch (value) {
           case 'edit':
           // Implement edit task functionality here
+            showTaskNotification(context, 'Task Edited Successfully!');
             break;
           case 'complete':
           // Implement mark as completed functionality here
+            showTaskNotification(context, 'Task Marked as Completed!');
             break;
           case 'delete':
             _deleteTask(task.id!);
@@ -142,10 +146,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         itemBuilder: (context, index) {
           final task = favoriteTasks[index];
           return ListTile(
-            title: Text(task.title, style: TextStyle(color: Colors.purple[800])), // Purple text for tasks
-            subtitle: Text('${task.date} at ${task.time}', style: TextStyle(color: Colors.purple[600])), // Purple subtitle
+            title: Text(
+              task.title,
+              style: TextStyle(color: Colors.purple[800]),
+            ), // Purple text for tasks
+            subtitle: Text(
+              '${task.date} at ${task.time}',
+              style: TextStyle(color: Colors.purple[600]),
+            ), // Purple subtitle
             trailing: IconButton(
-              icon: Icon(Icons.more_vert, color: Colors.purple[800]), // Purple icon
+              icon: Icon(
+                Icons.more_vert,
+                color: Colors.purple[800],
+              ), // Purple icon
               onPressed: () => _showTaskOptionsMenu(task), // Show task options menu
             ),
           );

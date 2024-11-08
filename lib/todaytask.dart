@@ -41,12 +41,125 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     setState(() {
       tasks.add(newTask);
     });
+
+    // Show SnackBar for adding task
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Task added successfully!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _deleteTask(int id) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id);
     _loadTasksFromDatabase(); // Refresh task list
+
+    // Show SnackBar for deleting task
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Task deleted successfully!'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Function to toggle favorite status
+  void _toggleFavorite(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      repeat: task.repeat,
+      isFavorite: !task.isFavorite,  // Toggle the favorite status
+      isCompleted: task.isCompleted,
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(updatedTask); // Update task in the database
+    setState(() {
+      task.isFavorite = updatedTask.isFavorite;
+    });
+
+    // Show SnackBar for toggling favorite
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(task.isFavorite ? 'Task marked as favorite!' : 'Task removed from favorites.'),
+        backgroundColor: Colors.purple,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Function to toggle completed status
+  void _toggleCompleted(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      repeat: task.repeat,
+      isFavorite: task.isFavorite,
+      isCompleted: !task.isCompleted,  // Toggle the completed status
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(updatedTask); // Update task in the database
+    setState(() {
+      task.isCompleted = updatedTask.isCompleted;
+    });
+
+    // Show SnackBar for toggling completed status
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(task.isCompleted ? 'Task marked as completed!' : 'Task marked as pending.'),
+        backgroundColor: Colors.blue,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme),
+          ),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
+        break;
+    }
   }
 
   // Function to show the input modal for adding a new task
@@ -137,83 +250,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         );
       },
     );
-  }
-
-  // Function to toggle favorite status
-  void _toggleFavorite(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      repeat: task.repeat,
-      isFavorite: !task.isFavorite,  // Toggle the favorite status
-      isCompleted: task.isCompleted,
-    );
-    final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(updatedTask); // Update task in the database
-    setState(() {
-      task.isFavorite = updatedTask.isFavorite;
-    });
-  }
-
-  // Function to toggle completed status
-  void _toggleCompleted(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      repeat: task.repeat,
-      isFavorite: task.isFavorite,
-      isCompleted: !task.isCompleted,  // Toggle the completed status
-    );
-    final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(updatedTask); // Update task in the database
-    setState(() {
-      task.isCompleted = updatedTask.isCompleted;
-    });
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme),
-          ),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme),
-          ),
-        );
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme),
-          ),
-        );
-        break;
-    }
   }
 
   @override

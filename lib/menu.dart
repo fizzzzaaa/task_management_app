@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'completed_screen.dart'; // Example of another screen you may navigate to
+import 'notif.dart'; // Import the notif.dart file for notifications screen
 
 class MenuDrawer extends StatelessWidget {
   final Function toggleTheme; // The toggleTheme function will be passed from the parent widget
@@ -52,9 +53,13 @@ class MenuDrawer extends StatelessWidget {
             leading: Icon(Icons.notifications),
             title: Text('Notifications'),
             onTap: () {
-              // Handle navigation to notifications screen
-              Navigator.pop(context); // Close the drawer for now
-              // Navigate to a Notifications screen if needed
+              // Close the drawer before navigating to the Notifications screen
+              Navigator.pop(context);
+              // Navigate to the NotifScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotifScreen()), // Navigate to NotifScreen
+              );
             },
           ),
           // Navigate to CompletedScreen (Progress tracking)
