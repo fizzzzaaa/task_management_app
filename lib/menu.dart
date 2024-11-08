@@ -8,6 +8,27 @@ class MenuDrawer extends StatelessWidget {
   // Constructor to receive the toggleTheme function
   MenuDrawer({required this.toggleTheme});
 
+  // Function to show the export message after selecting an option
+  void showExportMessage(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Export Status"),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -53,13 +74,11 @@ class MenuDrawer extends StatelessWidget {
             leading: Icon(Icons.notifications),
             title: Text('Notifications'),
             onTap: () {
-              // Close the drawer before navigating to the Notifications screen
+              // Close the drawer before showing the notification
               Navigator.pop(context);
-              // Navigate to the NotifScreen
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotifScreen()), // Navigate to NotifScreen
-              );
+
+              // Show task notification when the button is pressed
+              showTaskNotification(context, "This is your task notification!", duration: Duration(seconds: 3));
             },
           ),
           // Navigate to CompletedScreen (Progress tracking)
@@ -73,13 +92,59 @@ class MenuDrawer extends StatelessWidget {
               ); // Navigate to progress tracking screen
             },
           ),
-          // Export functionality (dummy for now)
+          // Export functionality
           ListTile(
             leading: Icon(Icons.share),
             title: Text('Export As'),
             onTap: () {
-              // Handle export functionality (e.g., export data to PDF)
-              Navigator.pop(context); // Close the drawer
+              // Close the drawer
+              Navigator.pop(context);
+
+              // Show the dialog to select export type (PDF or CSV)
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("Select Export Option"),
+                    content: Text("Choose whether you want to export as PDF or CSV."),
+                    actions: <Widget>[
+                      // Export as PDF
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent, // Transparent background
+                          padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                          side: BorderSide(color: Colors.blue), // Optional: border color
+                        ),
+                        icon: Icon(Icons.picture_as_pdf, color: Colors.blue), // PDF Icon
+                        label: Text("Export as PDF", style: TextStyle(color: Colors.blue)),
+                        onPressed: () {
+                          // Handle PDF export logic here
+                          Navigator.pop(context); // Close the dialog
+                          showExportMessage(context, "Exporting as PDF...");
+                          // Add your PDF export logic here
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      // Export as CSV
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent, // Transparent background
+                          padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                          side: BorderSide(color: Colors.green), // Optional: border color
+                        ),
+                        icon: Icon(Icons.table_chart, color: Colors.green), // CSV Icon
+                        label: Text("Export as CSV", style: TextStyle(color: Colors.green)),
+                        onPressed: () {
+                          // Handle CSV export logic here
+                          Navigator.pop(context); // Close the dialog
+                          showExportMessage(context, "Exporting as CSV...");
+                          // Add your CSV export logic here
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ],
