@@ -71,6 +71,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+            },
+          ),
+        ),
       ),
       body: Column(
         children: [

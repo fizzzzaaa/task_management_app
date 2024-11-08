@@ -94,6 +94,14 @@ class _CompletedScreenState extends State<CompletedScreen> {
         ),
         backgroundColor: Colors.purple[800],
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+            },
+          ),
+        ),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator()) // Show loading spinner while data is being fetched

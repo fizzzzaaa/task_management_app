@@ -128,7 +128,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   },
                   child: Text('Save'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.brown[800],
+                    backgroundColor: Colors.purple[800],
                   ),
                 ),
               ],
@@ -229,7 +229,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800],
         automaticallyImplyLeading: false,
         leading: Builder(
           builder: (context) => IconButton(
@@ -254,7 +254,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   IconButton(
                     icon: Icon(
                       tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: tasks[index].isFavorite ? Colors.red : null,
+                      color: tasks[index].isFavorite ? Colors.purple : null,
                     ),
                     onPressed: () {
                       _toggleFavorite(tasks[index]);  // Toggle favorite status
@@ -263,7 +263,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   IconButton(
                     icon: Icon(
                       tasks[index].isCompleted ? Icons.check_circle : Icons.check_circle_outline,
-                      color: tasks[index].isCompleted ? Colors.green : null,
+                      color: tasks[index].isCompleted ? Colors.purple : null,
                     ),
                     onPressed: () {
                       _toggleCompleted(tasks[index]);  // Toggle completed status
@@ -293,7 +293,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showTaskInputModal,
         child: Icon(Icons.add),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800],
       ),
       drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );

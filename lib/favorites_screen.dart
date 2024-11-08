@@ -124,6 +124,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
         backgroundColor: Colors.purple[800], // Purple AppBar background
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+            },
+          ),
+        ),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator()) // Show loading spinner
