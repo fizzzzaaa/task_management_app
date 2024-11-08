@@ -1,12 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'todaytask.dart'; // Import the TodayTaskPage to navigate to it
 import 'completed_screen.dart'; // Example of another screen you may navigate to
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: MyApp(),
+    ),
+  );
+}
+
+class ThemeNotifier extends ChangeNotifier {
+  bool _isDarkMode = false;
+
+  bool get isDarkMode => _isDarkMode;
+
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Access the theme state from the Provider
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
+    return MaterialApp(
+      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: TodayTaskPage(),
+    );
+  }
+}
 
 class MenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Accessing the state of MyApp to toggle theme
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    // Accessing the current theme state using Provider
+    bool isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Drawer(
       child: ListView(
@@ -46,11 +80,8 @@ class MenuDrawer extends StatelessWidget {
             trailing: Switch(
               value: isDarkMode, // Use the current theme state to update switch
               onChanged: (value) {
-                // Change the theme mode using the setState in MyApp
-                final appState = context.findAncestorStateOfType<_MyAppState>();
-                appState?.setState(() {
-                  appState._isDarkMode = value;
-                });
+                // Toggle the theme state using the ThemeNotifier
+                Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
               },
             ),
           ),
@@ -85,6 +116,31 @@ class MenuDrawer extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class TodayTaskPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Today\'s Tasks')),
+      body: Center(
+        child: Text('Tasks for today will be displayed here'),
+      ),
+      drawer: MenuDrawer(),
+    );
+  }
+}
+
+class CompletedScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Completed Tasks')),
+      body: Center(
+        child: Text('Completed tasks will be displayed here'),
       ),
     );
   }
