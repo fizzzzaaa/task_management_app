@@ -1,45 +1,45 @@
 class Task {
-  final int? id;
-  final String title;
-  final String date;
-  final String time;
-  final bool isFavorite;
-  final bool isCompleted;
-  final String repeat; // New repeat field
+  int? id;
+  String title;
+  String date;
+  String time;
+  String repeat;
+  bool isFavorite;
+  bool isCompleted;
 
   Task({
     this.id,
     required this.title,
     required this.date,
     required this.time,
-    this.isFavorite = false,
-    this.isCompleted = false,
-    this.repeat = 'Never', // Default value
+    required this.repeat,
+    this.isFavorite = false,  // Default value for isFavorite
+    this.isCompleted = false, // Default value for isCompleted
   });
 
-  // Convert Task to Map (for SQFlite)
+  // Convert a Task object into a Map to store in the database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'date': date,
       'time': time,
-      'isFavorite': isFavorite ? 1 : 0,
-      'isCompleted': isCompleted ? 1 : 0,
-      'repeat': repeat, // Include repeat field
+      'repeat': repeat,
+      'isFavorite': isFavorite ? 1 : 0,  // Store as integer in database
+      'isCompleted': isCompleted ? 1 : 0,  // Store as integer in database
     };
   }
 
-  // Convert Map to Task (from SQFlite)
-  static Task fromMap(Map<String, dynamic> map) {
+  // Convert a Map into a Task object
+  factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'],
       title: map['title'],
       date: map['date'],
       time: map['time'],
-      isFavorite: map['isFavorite'] == 1,
-      isCompleted: map['isCompleted'] == 1,
-      repeat: map['repeat'], // Handle repeat field
+      repeat: map['repeat'],
+      isFavorite: map['isFavorite'] == 1,  // Convert from integer to bool
+      isCompleted: map['isCompleted'] == 1,  // Convert from integer to bool
     );
   }
 }

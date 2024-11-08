@@ -35,7 +35,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   }
 
   void _addTask(String taskName, String date, String time, String repeat) async {
-    final newTask = Task(title: taskName, date: date, time: time, repeat: repeat);
+    final newTask = Task(title: taskName, date: date, time: time, repeat: repeat, isFavorite: false, isCompleted: false);
     final dbHelper = DatabaseHelper();
     await dbHelper.insertTask(newTask);
     setState(() {
@@ -46,36 +46,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   void _deleteTask(int id) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id);
-    _loadTasksFromDatabase(); // Refresh task list
-  }
-
-  void _toggleFavoriteStatus(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      isFavorite: !task.isFavorite,
-      isCompleted: task.isCompleted,
-      repeat: task.repeat,
-    );
-    final dbHelper = DatabaseHelper();
-    await dbHelper.updateTaskFavoriteStatus(task.id!, updatedTask.isFavorite);
-    _loadTasksFromDatabase(); // Refresh task list
-  }
-
-  void _toggleCompleteStatus(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      isFavorite: task.isFavorite,
-      isCompleted: !task.isCompleted,
-      repeat: task.repeat,
-    );
-    final dbHelper = DatabaseHelper();
-    await dbHelper.updateTaskCompleteStatus(task.id!, updatedTask.isCompleted);
     _loadTasksFromDatabase(); // Refresh task list
   }
 
@@ -169,6 +139,42 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
+  // Function to toggle favorite status
+  void _toggleFavorite(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      repeat: task.repeat,
+      isFavorite: !task.isFavorite,  // Toggle the favorite status
+      isCompleted: task.isCompleted,
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(updatedTask); // Update task in the database
+    setState(() {
+      task.isFavorite = updatedTask.isFavorite;
+    });
+  }
+
+  // Function to toggle completed status
+  void _toggleCompleted(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      repeat: task.repeat,
+      isFavorite: task.isFavorite,
+      isCompleted: !task.isCompleted,  // Toggle the completed status
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertTask(updatedTask); // Update task in the database
+    setState(() {
+      task.isCompleted = updatedTask.isCompleted;
+    });
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -248,16 +254,35 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   IconButton(
                     icon: Icon(
                       tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: tasks[index].isFavorite ? Colors.red : Colors.grey,
+                      color: tasks[index].isFavorite ? Colors.red : null,
                     ),
-                    onPressed: () => _toggleFavoriteStatus(tasks[index]),
+                    onPressed: () {
+                      _toggleFavorite(tasks[index]);  // Toggle favorite status
+                    },
                   ),
                   IconButton(
                     icon: Icon(
                       tasks[index].isCompleted ? Icons.check_circle : Icons.check_circle_outline,
-                      color: tasks[index].isCompleted ? Colors.green : Colors.grey,
+                      color: tasks[index].isCompleted ? Colors.green : null,
                     ),
-                    onPressed: () => _toggleCompleteStatus(tasks[index]),
+                    onPressed: () {
+                      _toggleCompleted(tasks[index]);  // Toggle completed status
+                    },
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'Delete') {
+                        _deleteTask(tasks[index].id!); // Use the task ID for deletion
+                      }
+                    },
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          value: 'Delete',
+                          child: Text('Delete'),
+                        ),
+                      ];
+                    },
                   ),
                 ],
               ),
