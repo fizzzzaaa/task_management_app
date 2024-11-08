@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'database.dart'; // Import your SQLite database helper
+import 'database.dart'; // Import your DatabaseHelper
 import 'task_model.dart'; // Import your Task model
-import 'todaytask.dart'; // Correct the import for TodayTaskPage
-import 'completed_screen.dart';
-import 'calendar_screen.dart';
-import 'menu.dart';
+import 'todaytask.dart' as todaytask; // Use alias for todaytask.dart
+import 'package:task_management_app/favorites_screen.dart' as favorites;
+import 'package:task_management_app/completed_screen.dart' as completed;
+import 'package:task_management_app/calendar_screen.dart';
+import 'menu.dart'; // If required, keep this import, but do not import TodayTaskPage from here
 
 class FavoritesScreen extends StatefulWidget {
   @override
@@ -51,7 +52,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => TodayTaskPage()), // Ensure the correct file is used
+          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage()), // Corrected to use alias
         );
         break;
       case 1:

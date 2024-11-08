@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'database.dart'; // Import the database helper
-import 'task_model.dart'; // Import the TaskItem
+import 'database.dart';
+import 'task_model.dart';
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
@@ -12,8 +12,8 @@ class TodayTaskPage extends StatefulWidget {
 }
 
 class _TodayTaskPageState extends State<TodayTaskPage> {
-  List<Task> tasks = []; // Use List<TaskItem> to store tasks
-  int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
+  List<Task> tasks = [];
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -22,26 +22,25 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   }
 
   Future<void> _loadTasksFromDatabase() async {
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    final allTasks = await dbHelper.getAllTasks(); // Query all tasks from the database
+    final dbHelper = DatabaseHelper();
+    final allTasks = await dbHelper.fetchTasks(); // Updated to use fetchTasks
     setState(() {
-      tasks = allTasks; // Update the state with the fetched tasks
+      tasks = allTasks;
     });
   }
 
   void _addTask(String taskName, String date, String time, String repeat) async {
     final newTask = Task(title: taskName, date: date, time: time, repeat: repeat);
     final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(newTask); // Insert the task into the database
+    await dbHelper.insertTask(newTask);
     setState(() {
-      tasks.add(newTask); // Immediately add the new task to the list
+      tasks.add(newTask);
     });
   }
 
-  // Function to delete a task from the database and refresh the task list
   void _deleteTask(int id) async {
     final dbHelper = DatabaseHelper();
-    await dbHelper.deleteTask(id); // Delete task from the database
+    await dbHelper.deleteTask(id);
     _loadTasksFromDatabase(); // Refresh task list
   }
 
@@ -50,7 +49,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     String taskName = '';
     String? date;
     String? time;
-    String repeat = 'Never'; // Default repeat option
+    String repeat = 'None'; // Default repeat option
 
     showModalBottomSheet(
       context: context,
@@ -100,21 +99,22 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                     }
                   },
                 ),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Repeat'),
-                  value: repeat,
-                  items: <String>['Never', 'Daily', 'Weekly', 'Monthly']
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      repeat = newValue!;
-                    });
-                  },
+                ListTile(
+                  title: Text("Repeat"),
+                  trailing: DropdownButton<String>(
+                    value: repeat,
+                    items: ['None', 'Daily', 'Weekly', 'Monthly'].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        repeat = newValue!;
+                      });
+                    },
+                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
@@ -137,10 +137,9 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     );
   }
 
-  // Function to handle bottom navigation
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // Update the selected index
+      _selectedIndex = index;
     });
 
     switch (index) {
@@ -159,7 +158,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     }
   }
 
-  // Build method for rendering UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,7 +181,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             margin: EdgeInsets.all(10),
             child: ListTile(
               title: Text(tasks[index].title),
-              subtitle: Text('${tasks[index].date} at ${tasks[index].time}\nRepeats: ${tasks[index].repeat}'),
+              subtitle: Text('${tasks[index].date} at ${tasks[index].time} - ${tasks[index].repeat}'),
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'Edit') {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'database.dart'; // Import the database helper
 import 'task_model.dart'; // Import the Task model
-import 'todaytask.dart';
+import 'todaytask.dart' as todaytask;
 import 'favorites_screen.dart';
 import 'calendar_screen.dart';
 import 'menu.dart';
@@ -51,7 +51,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => TodayTaskPage()),
+          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage()),
         );
         break;
       case 1:
