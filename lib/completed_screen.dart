@@ -45,6 +45,23 @@ class _CompletedScreenState extends State<CompletedScreen> {
     }
   }
 
+  Future<void> _deleteTask(int taskId) async {
+    final dbHelper = DatabaseHelper(); // Get the instance of DatabaseHelper
+    try {
+      await dbHelper.deleteTask(taskId); // Delete task by its ID
+      setState(() {
+        completedTasks.removeWhere((task) => task.id == taskId); // Remove task from list
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task deleted successfully.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete task.')),
+      );
+    }
+  }
+
   // Function to handle bottom navigation
   void _onItemTapped(int index) {
     setState(() {
@@ -61,7 +78,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme
+          MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 2:
@@ -73,7 +90,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme
+          MaterialPageRoute(builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
     }
@@ -110,10 +127,25 @@ class _CompletedScreenState extends State<CompletedScreen> {
           : ListView.builder(
         itemCount: completedTasks.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(completedTasks[index].title),
-            subtitle: Text('${completedTasks[index].date} at ${completedTasks[index].time}'),
-          );
+          final task = completedTasks[index];
+          if (task.id != null) { // Check if task has a non-null id
+            return ListTile(
+              title: Text(task.title),
+              subtitle: Text('${task.date} at ${task.time}'),
+              trailing: IconButton(
+                icon: Icon(Icons.delete, color: Colors.purple),
+                onPressed: () {
+                  _deleteTask(task.id!); // Force unwrapping, since id is non-null after the check
+                },
+              ),
+            );
+          } else {
+            // Handle the case where id is null (if necessary)
+            return ListTile(
+              title: Text(task.title),
+              subtitle: Text('No valid ID'),
+            );
+          }
         },
       ),
       drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
