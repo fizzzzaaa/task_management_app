@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'database.dart'; // Import the database helper
 import 'task_model.dart'; // Import the Task model
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
-import 'menu.dart';
+import 'menu.dart'; // Import your Menu screen
 
 class TodayTaskPage extends StatefulWidget {
   @override
@@ -30,170 +29,69 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     });
   }
 
-  void _addTask(String taskName, String date, String time, String repeat) async {
-    final newTask = Task(
-      title: taskName,
-      date: date,
-      time: time,
-      repeat: repeat,
-    );
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    await dbHelper.insertTask(newTask); // Insert the task into the database
-    _loadTasksFromDatabase(); // Refresh the tasks list after adding a new task
-  }
-
-  void _deleteTask(int id) async {
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    await dbHelper.deleteTask(id); // Delete the task from the database
-    _loadTasksFromDatabase(); // Refresh the task list after deletion
-  }
-
-  // Toggle completion status by creating a new Task instance with updated isCompleted status
-  void _toggleTaskCompletion(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      isFavorite: task.isFavorite,
-      isCompleted: !task.isCompleted,
-      repeat: task.repeat,
-    );
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    await dbHelper.updateTask(updatedTask); // Update the task in the database
-    _loadTasksFromDatabase(); // Refresh the tasks list
-  }
-
-  // Toggle favorite status by creating a new Task instance with updated isFavorite status
-  void _toggleTaskFavorite(Task task) async {
-    final updatedTask = Task(
-      id: task.id,
-      title: task.title,
-      date: task.date,
-      time: task.time,
-      isFavorite: !task.isFavorite,
-      isCompleted: task.isCompleted,
-      repeat: task.repeat,
-    );
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-    await dbHelper.updateTask(updatedTask); // Update the task in the database
-    _loadTasksFromDatabase(); // Refresh the tasks list
-  }
-
-  void _showTaskInputModal() {
-    String taskName = '';
-    String? date;
-    String? time;
-    String repeat = 'Never'; // Default repeat option
-
+  void _showMenu() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: InputDecoration(labelText: 'Task Name'),
-                  onChanged: (value) {
-                    taskName = value;
-                  },
-                ),
-                ListTile(
-                  title: Text(date ?? 'Select Date', style: TextStyle(fontSize: 16)),
-                  trailing: Icon(Icons.calendar_today),
-                  onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null) {
-                      setState(() {
-                        date = DateFormat.yMMMMd().format(pickedDate);
-                      });
-                    }
-                  },
-                ),
-                ListTile(
-                  title: Text(time ?? 'Select Time', style: TextStyle(fontSize: 16)),
-                  trailing: Icon(Icons.access_time),
-                  onTap: () async {
-                    TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      setState(() {
-                        time = pickedTime.format(context);
-                      });
-                    }
-                  },
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Repeat'),
-                  value: repeat,
-                  items: <String>['Never', 'Daily', 'Weekly', 'Monthly']
-                      .map((String value) {
-                    return DropdownMenuItem<String>(value: value, child: Text(value));
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      repeat = newValue!; // Update the repeat option
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (taskName.isNotEmpty && date != null && time != null) {
-                      _addTask(taskName, date!, time!, repeat);
-                      Navigator.pop(context); // Close the modal after saving
-                    }
-                  },
-                  child: Text('Save'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple[800],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.5, // Show half of the screen height
+        child: Menu(), // Display Menu from menu.dart
+      ),
     );
   }
 
-  // Adjust the navigation when bottom navigation item is tapped
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index; // Update the selected index
-    });
+  // Toggle task favorite status
+  void _toggleTaskFavorite(Task task) {
+    final dbHelper = DatabaseHelper();
+    task.isFavorite = !task.isFavorite;
+    dbHelper.updateTask(task); // Update the task in the database
+    setState(() {}); // Rebuild the UI to reflect the change
+  }
 
-    // Navigation logic for the bottom navigation buttons
-    switch (index) {
-      case 0:
-        break; // No action needed because this page is the default
-      case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
-        break;
-      case 2:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
-        break;
-      case 3:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
-        break;
-    }
+  // Toggle task completion status
+  void _toggleTaskCompletion(Task task) {
+    final dbHelper = DatabaseHelper();
+    task.isCompleted = !task.isCompleted;
+    dbHelper.updateTask(task); // Update the task in the database
+    setState(() {}); // Rebuild the UI to reflect the change
+  }
+
+  // Delete task by ID
+  void _deleteTask(int taskId) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.deleteTask(taskId); // Delete task from the database
+    _loadTasksFromDatabase(); // Reload tasks to reflect the deletion
+  }
+
+  // Show the task input modal for adding a new task
+  void _showTaskInputModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.5,
+          child: TaskInputForm(onSave: (newTask) {
+            final dbHelper = DatabaseHelper();
+            dbHelper.insertTask(newTask); // Save the new task in the database
+            _loadTasksFromDatabase(); // Reload tasks
+            Navigator.pop(context); // Close the modal
+          }),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.menu,
+            color: Colors.white, // Set the icon color to white
+          ),
+          onPressed: _showMenu, // Show the menu as a half-screen overlay
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -203,7 +101,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800],
         automaticallyImplyLeading: false,
       ),
       body: ListView.builder(
@@ -220,7 +118,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   IconButton(
                     icon: Icon(
                       tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: tasks[index].isFavorite ? Colors.red : Colors.grey,
+                      color: tasks[index].isFavorite ? Colors.deepPurple : Colors.blueGrey,
                     ),
                     onPressed: () {
                       _toggleTaskFavorite(tasks[index]);
@@ -228,8 +126,8 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   ),
                   IconButton(
                     icon: Icon(
-                      tasks[index].isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                      color: tasks[index].isCompleted ? Colors.green : Colors.grey,
+                      tasks[index].isCompleted ? Icons.library_add_check_rounded : Icons.library_add_check_outlined,
+                      color: tasks[index].isCompleted ? Colors.deepPurple : Colors.deepPurple,
                     ),
                     onPressed: () {
                       _toggleTaskCompletion(tasks[index]);
@@ -256,12 +154,11 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showTaskInputModal,
         child: Icon(Icons.add),
-        backgroundColor: Colors.brown[800],
+        backgroundColor: Colors.purple[800],
       ),
     );
   }
 
-  // Build navigation buttons for each section
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () {
@@ -279,6 +176,50 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
               color: _selectedIndex == index ? Colors.white : Colors.brown[200],
               fontSize: 12,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Handle bottom navigation bar tap events
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+}
+
+class TaskInputForm extends StatelessWidget {
+  final Function(Task) onSave;
+
+  TaskInputForm({required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    // Form for creating or editing a task
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(labelText: 'Task Title'),
+            onChanged: (value) {
+              // Handle title change
+            },
+          ),
+          TextField(
+            decoration: InputDecoration(labelText: 'Date & Time'),
+            onChanged: (value) {
+              // Handle date & time change
+            },
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Task newTask = Task(title: 'New Task', date: '2024-11-08', time: '12:00 PM'); // Dummy task
+              onSave(newTask);
+            },
+            child: Text('Save Task'),
           ),
         ],
       ),

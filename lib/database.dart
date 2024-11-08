@@ -3,7 +3,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'task_model.dart';
-import 'menu.dart';// Assuming you have this model for tasks
 
 class DatabaseHelper {
   static Database? _database;
@@ -26,14 +25,14 @@ class DatabaseHelper {
         path,
         version: 1,
         onCreate: (db, version) async {
-          await db.execute('''
+          await db.execute(''' 
             CREATE TABLE tasks (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               title TEXT,
               date TEXT,
               time TEXT,
-              isFavorite INTEGER,
-              isCompleted INTEGER,
+              isFavorite INTEGER DEFAULT 0,
+              isCompleted INTEGER DEFAULT 0,
               repeat TEXT
             )
           ''');
@@ -66,6 +65,32 @@ class DatabaseHelper {
       });
     } catch (e) {
       print('Error fetching tasks: $e');
+      return [];
+    }
+  }
+
+  // Fetch tasks based on completion status (completed or not)
+  Future<List<Task>> fetchTasksByStatus({required bool isCompleted}) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> taskMaps = await db.query(
+        'tasks',
+        where: 'isCompleted = ?',
+        whereArgs: [isCompleted ? 1 : 0],
+      );
+      return List.generate(taskMaps.length, (i) {
+        return Task(
+          id: taskMaps[i]['id'],
+          title: taskMaps[i]['title'],
+          date: taskMaps[i]['date'],
+          time: taskMaps[i]['time'],
+          isFavorite: taskMaps[i]['isFavorite'] == 1,
+          isCompleted: taskMaps[i]['isCompleted'] == 1,
+          repeat: taskMaps[i]['repeat'],
+        );
+      });
+    } catch (e) {
+      print('Error fetching tasks by status: $e');
       return [];
     }
   }
@@ -109,6 +134,38 @@ class DatabaseHelper {
       print('Task updated: ${task.title}');
     } catch (e) {
       print('Error updating task: $e');
+    }
+  }
+
+  // Toggle favorite status of a task
+  Future<void> toggleFavorite(int taskId, bool isFavorite) async {
+    try {
+      final db = await database;
+      await db.update(
+        'tasks',
+        {'isFavorite': isFavorite ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [taskId],
+      );
+      print('Task favorite status updated');
+    } catch (e) {
+      print('Error toggling favorite: $e');
+    }
+  }
+
+  // Toggle completion status of a task
+  Future<void> toggleCompletion(int taskId, bool isCompleted) async {
+    try {
+      final db = await database;
+      await db.update(
+        'tasks',
+        {'isCompleted': isCompleted ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [taskId],
+      );
+      print('Task completion status updated');
+    } catch (e) {
+      print('Error toggling completion: $e');
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:task_management_app/favorites_screen.dart' as favorites;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
+import 'menu.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
@@ -55,12 +56,15 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 100, // Set the desired width
-              height: 100, // Set the desired height
-              child: Image.asset(
-                'assets/image.webp',
-                fit: BoxFit.cover, // Adjust the image to fit the box
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15), // Set the radius for rounded corners
+              child: SizedBox(
+                width: 100, // Set the desired width
+                height: 100, // Set the desired height
+                child: Image.asset(
+                  'assets/image.webp',
+                  fit: BoxFit.cover, // Adjust the image to fit the box
+                ),
               ),
             ),
             SizedBox(height: 20), // Gap between text and image
