@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'todaytask.dart'; // Assuming TodayTaskPage is one of the screens you navigate to
+import 'todaytask.dart'; // Import the TodayTaskPage to navigate to it
 import 'completed_screen.dart'; // Example of another screen you may navigate to
-import 'favorites_screen.dart'; // Example screen
 
 class MenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Accessing the state of MyApp to toggle theme
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -14,12 +16,27 @@ class MenuDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.purple[800], // Matching theme color
             ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon
+                  onPressed: () {
+                    // Navigate to TodayTaskPage when the back arrow is clicked
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => TodayTaskPage()),
+                    );
+                  },
+                ),
+                SizedBox(width: 10), // Some spacing between the icon and the text
+                Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
             ),
           ),
           // Theme switcher
@@ -27,10 +44,13 @@ class MenuDrawer extends StatelessWidget {
             leading: Icon(Icons.palette),
             title: Text('Theme'),
             trailing: Switch(
-              value: false, // Placeholder value for switch state
+              value: isDarkMode, // Use the current theme state to update switch
               onChanged: (value) {
-                // Handle theme change (e.g., change between dark and light themes)
-                // Example: Implement theme switcher using Provider or any state management
+                // Change the theme mode using the setState in MyApp
+                final appState = context.findAncestorStateOfType<_MyAppState>();
+                appState?.setState(() {
+                  appState._isDarkMode = value;
+                });
               },
             ),
           ),
@@ -62,28 +82,6 @@ class MenuDrawer extends StatelessWidget {
             onTap: () {
               // Handle export functionality (e.g., export data to PDF)
               Navigator.pop(context); // Close the drawer
-            },
-          ),
-          // Navigate to TodayTasks screen
-          ListTile(
-            leading: Icon(Icons.check_circle),
-            title: Text('Today\'s Tasks'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TodayTaskPage()),
-              ); // Navigate to TodayTaskPage screen
-            },
-          ),
-          // Navigate to Favorites screen
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text('Favorites'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FavoritesScreen()),
-              ); // Navigate to Favorites screen
             },
           ),
         ],

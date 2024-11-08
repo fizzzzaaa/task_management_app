@@ -4,7 +4,7 @@ import 'task_model.dart'; // Import the Task model
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
-import 'menu.dart'; // Import your Menu screen
+import 'menu.dart'; // Import your MenuDrawer screen
 
 class TodayTaskPage extends StatefulWidget {
   @override
@@ -27,33 +27,6 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     setState(() {
       tasks = allTasks; // Update the tasks list with the fetched tasks
     });
-  }
-
-  void _showMenu() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.5, // Show half of the screen height
-        child: Menu(), // Display Menu from menu.dart
-      ),
-    );
-  }
-
-  // Toggle task favorite status
-  void _toggleTaskFavorite(Task task) {
-    final dbHelper = DatabaseHelper();
-    task.isFavorite = !task.isFavorite;
-    dbHelper.updateTask(task); // Update the task in the database
-    setState(() {}); // Rebuild the UI to reflect the change
-  }
-
-  // Toggle task completion status
-  void _toggleTaskCompletion(Task task) {
-    final dbHelper = DatabaseHelper();
-    task.isCompleted = !task.isCompleted;
-    dbHelper.updateTask(task); // Update the task in the database
-    setState(() {}); // Rebuild the UI to reflect the change
   }
 
   // Delete task by ID
@@ -85,12 +58,18 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
+        leading: GestureDetector(
+          onTap: () {
+            // Navigate to the MenuDrawer screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MenuDrawer()), // Push the MenuDrawer screen onto the stack
+            );
+          },
+          child: Icon(
             Icons.menu,
             color: Colors.white, // Set the icon color to white
           ),
-          onPressed: _showMenu, // Show the menu as a half-screen overlay
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -115,25 +94,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: tasks[index].isFavorite ? Colors.deepPurple : Colors.blueGrey,
-                    ),
-                    onPressed: () {
-                      _toggleTaskFavorite(tasks[index]);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      tasks[index].isCompleted ? Icons.library_add_check_rounded : Icons.library_add_check_outlined,
-                      color: tasks[index].isCompleted ? Colors.deepPurple : Colors.deepPurple,
-                    ),
-                    onPressed: () {
-                      _toggleTaskCompletion(tasks[index]);
-                    },
-                  ),
-                  PopupMenuButton<String>(
+                  PopupMenuButton<String>( // Popup menu for delete action
                     onSelected: (value) {
                       if (value == 'Delete') {
                         _deleteTask(tasks[index].id!); // Delete task by ID
