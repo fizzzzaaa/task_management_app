@@ -5,8 +5,13 @@ import 'task_model.dart';
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
+import 'menu.dart'; // Import the menu.dart file here
 
 class TodayTaskPage extends StatefulWidget {
+  final Function toggleTheme;  // Add toggleTheme as a parameter
+
+  TodayTaskPage({required this.toggleTheme});  // Accept toggleTheme in the constructor
+
   @override
   _TodayTaskPageState createState() => _TodayTaskPageState();
 }
@@ -104,10 +109,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                   trailing: DropdownButton<String>(
                     value: repeat,
                     items: ['None', 'Daily', 'Weekly', 'Monthly'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
+                      return DropdownMenuItem<String>(value: value, child: Text(value));
                     }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
@@ -144,7 +146,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme)));
         break;
       case 1:
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
@@ -173,6 +175,14 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         ),
         backgroundColor: Colors.brown[800],
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+            },
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: tasks.length,
@@ -212,6 +222,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         child: Icon(Icons.add),
         backgroundColor: Colors.brown[800],
       ),
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );
   }
 

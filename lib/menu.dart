@@ -1,47 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'todaytask.dart'; // Import the TodayTaskPage to navigate to it
 import 'completed_screen.dart'; // Example of another screen you may navigate to
-
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(),
-      child: MyApp(),
-    ),
-  );
-}
-
-class ThemeNotifier extends ChangeNotifier {
-  bool _isDarkMode = false;
-
-  bool get isDarkMode => _isDarkMode;
-
-  void toggleTheme() {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
-  }
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // Access the theme state from the Provider
-    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-
-    return MaterialApp(
-      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
-      home: TodayTaskPage(),
-    );
-  }
-}
+import 'todaytask.dart'; // Import the TodayTaskPage to navigate to it
 
 class MenuDrawer extends StatelessWidget {
+  final Function toggleTheme; // The toggleTheme function will be passed from the parent widget
+
+  // Constructor to receive the toggleTheme function
+  MenuDrawer({required this.toggleTheme});
+
   @override
   Widget build(BuildContext context) {
-    // Accessing the current theme state using Provider
-    bool isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -55,11 +23,7 @@ class MenuDrawer extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon
                   onPressed: () {
-                    // Navigate to TodayTaskPage when the back arrow is clicked
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => TodayTaskPage()),
-                    );
+                    Navigator.pop(context); // Close the drawer when clicked
                   },
                 ),
                 SizedBox(width: 10), // Some spacing between the icon and the text
@@ -78,35 +42,35 @@ class MenuDrawer extends StatelessWidget {
             leading: Icon(Icons.palette),
             title: Text('Theme'),
             trailing: Switch(
-              value: isDarkMode, // Use the current theme state to update switch
+              value: Theme.of(context).brightness == Brightness.dark, // Check if current theme is dark
               onChanged: (value) {
-                // Toggle the theme state using the ThemeNotifier
-                Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+                toggleTheme(); // Call the toggle theme function passed from parent
               },
             ),
           ),
-          // Notifications setting
+          // Navigate to TodayTaskPage
           ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text('Notifications'),
+            leading: Icon(Icons.check_circle),
+            title: Text('Today\'s Tasks'),
             onTap: () {
-              // Handle notifications setting (maybe open a settings screen)
-              Navigator.pop(context); // Close the drawer
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: toggleTheme)),
+              ); // Navigate to TodayTaskPage
             },
           ),
-          // Progress tracking
+          // Navigate to CompletedScreen (Progress tracking)
           ListTile(
             leading: Icon(Icons.bar_chart),
             title: Text('Progress'),
             onTap: () {
-              // Handle progress tracking
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => CompletedScreen()),
               ); // Navigate to progress tracking screen
             },
           ),
-          // Export functionality
+          // Export functionality (dummy for now)
           ListTile(
             leading: Icon(Icons.share),
             title: Text('Export As'),
@@ -116,31 +80,6 @@ class MenuDrawer extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-class TodayTaskPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Today\'s Tasks')),
-      body: Center(
-        child: Text('Tasks for today will be displayed here'),
-      ),
-      drawer: MenuDrawer(),
-    );
-  }
-}
-
-class CompletedScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Completed Tasks')),
-      body: Center(
-        child: Text('Completed tasks will be displayed here'),
       ),
     );
   }

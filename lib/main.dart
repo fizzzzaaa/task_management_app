@@ -1,55 +1,52 @@
 import 'package:flutter/material.dart';
-import 'database.dart'; // Import your DatabaseHelper
-import 'task_model.dart'; // Import your Task model
-import 'todaytask.dart' as todaytask;
-import 'package:path_provider/path_provider.dart';
-import 'package:task_management_app/favorites_screen.dart' as favorites;
-import 'package:task_management_app/completed_screen.dart';
-import 'package:task_management_app/calendar_screen.dart';
-import 'menu.dart';
+import 'todaytask.dart'; // Import the TodayTaskPage
+import 'menu.dart'; // Import MenuDrawer if used
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
-  final dbHelper = DatabaseHelper();
-  await dbHelper.database; // This will initialize the database automatically
-  runApp(MyApp()); // Run the app
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.brown,
-      ),
-      home: SplashScreen(), // Set the splash screen as the initial route
-    );
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
-class SplashScreen extends StatefulWidget {
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
+class _MyAppState extends State<MyApp> {
+  bool _isDarkMode = false; // Initial theme is light
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _navigateToTodayTask();
-  }
-
-  void _navigateToTodayTask() {
-    Future.delayed(Duration(seconds: 3), () { // Display splash for 3 seconds
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TodayTaskPage()), // Navigate to TodayTaskPage after splash
-      );
+  // Toggle the theme between light and dark mode
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: _isDarkMode ? ThemeData.dark() : ThemeData.light(), // Theme toggle
+      home: SplashScreen(toggleTheme: _toggleTheme), // Pass the toggle function to SplashScreen
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  final Function toggleTheme;
+
+  SplashScreen({required this.toggleTheme});
+
+  @override
+  Widget build(BuildContext context) {
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TodayTaskPage(toggleTheme: toggleTheme), // Pass toggleTheme to TodayTaskPage
+        ),
+      );
+    });
+
     return Scaffold(
       backgroundColor: Colors.brown[800],
       body: Center(
@@ -57,17 +54,17 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(15), // Set the radius for rounded corners
+              borderRadius: BorderRadius.circular(15),
               child: SizedBox(
-                width: 100, // Set the desired width
-                height: 100, // Set the desired height
+                width: 100,
+                height: 100,
                 child: Image.asset(
                   'assets/image.webp',
-                  fit: BoxFit.cover, // Adjust the image to fit the box
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-            SizedBox(height: 20), // Gap between text and image
+            SizedBox(height: 20),
             Text(
               'TO-Do Tasks',
               style: TextStyle(fontSize: 24, color: Colors.white),
