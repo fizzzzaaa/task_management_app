@@ -54,10 +54,10 @@ class _CompletedScreenState extends State<CompletedScreen> {
         completedTasks.removeWhere((task) => task.id == taskId); // Remove task from list
       });
       // Show notification for successful task deletion
-      showTaskNotification(context, 'Task deleted successfully.');
+      showTaskNotification('Task deleted successfully.');
     } catch (e) {
       // Show notification for failure to delete task
-      showTaskNotification(context, 'Failed to delete task.');
+      showTaskNotification('Failed to delete task.');
     }
   }
 

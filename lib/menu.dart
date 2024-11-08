@@ -1,6 +1,34 @@
 import 'package:flutter/material.dart';
-import 'completed_screen.dart'; // Example of another screen you may navigate to
-import 'notif.dart'; // Import the notif.dart file for notifications screen
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+
+// Import other screens and classes
+import 'completed_screen.dart';
+import 'notif.dart';
+
+// Function to show a message after export
+void showExportMessage(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Export Status"),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
 class MenuDrawer extends StatelessWidget {
   final Function toggleTheme; // The toggleTheme function will be passed from the parent widget
@@ -8,25 +36,72 @@ class MenuDrawer extends StatelessWidget {
   // Constructor to receive the toggleTheme function
   MenuDrawer({required this.toggleTheme});
 
-  // Function to show the export message after selecting an option
-  void showExportMessage(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Export Status"),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
+  // Initialize the downloader
+  Future<void> _downloadFile(String url, String filename) async {
+    final dir = await getExternalStorageDirectory();
+    final filePath = "${dir!.path}/$filename";
+
+    // Start the download
+    final taskId = await FlutterDownloader.enqueue(
+      url: url,
+      savedDir: dir.path,
+      fileName: filename,
+      showNotification: true, // Show download notification
+      openFileFromNotification: true, // Open file after download
     );
+
+    print('Download task started with id: $taskId');
+  }
+
+  // Function to create PDF report and trigger download
+  Future<void> createPdfReport(BuildContext context) async {
+    final pdf = pw.Document();
+
+    // Add a page to the document
+    pdf.addPage(pw.Page(
+      build: (pw.Context context) {
+        return pw.Center(
+          child: pw.Text('This is your report!', style: pw.TextStyle(fontSize: 40)),
+        ); // Simple text for now
+      },
+    ));
+
+    try {
+      final outputDirectory = await getExternalStorageDirectory();  // Get external directory
+      final filePath = "${outputDirectory!.path}/report.pdf"; // Define file path
+
+      final file = File(filePath);
+      await file.writeAsBytes(await pdf.save()); // Save PDF to file
+
+      // Trigger the download of the PDF
+      _downloadFile(filePath, 'report.pdf');
+
+      // Show a success message
+      showExportMessage(context, "PDF Exported Successfully!");
+    } catch (e) {
+      showExportMessage(context, "Failed to export PDF: $e");
+    }
+  }
+
+  // Function to create CSV report and trigger download
+  Future<void> createCsvReport(BuildContext context) async {
+    try {
+      final csvData = "Column1,Column2,Column3\n1,2,3\n4,5,6"; // Simple CSV data
+
+      final outputDirectory = await getExternalStorageDirectory(); // Get external directory
+      final filePath = "${outputDirectory!.path}/report.csv"; // Define file path
+
+      final file = File(filePath);
+      await file.writeAsString(csvData); // Save CSV data to file
+
+      // Trigger the download of the CSV
+      _downloadFile(filePath, 'report.csv');
+
+      // Show a success message
+      showExportMessage(context, "CSV Exported Successfully!");
+    } catch (e) {
+      showExportMessage(context, "Failed to export CSV: $e");
+    }
   }
 
   @override
@@ -78,7 +153,7 @@ class MenuDrawer extends StatelessWidget {
               Navigator.pop(context);
 
               // Show task notification when the button is pressed
-              showTaskNotification(context, "This is your task notification!", duration: Duration(seconds: 3));
+
             },
           ),
           // Navigate to CompletedScreen (Progress tracking)
@@ -120,8 +195,7 @@ class MenuDrawer extends StatelessWidget {
                         onPressed: () {
                           // Handle PDF export logic here
                           Navigator.pop(context); // Close the dialog
-                          showExportMessage(context, "Exporting as PDF...");
-                          // Add your PDF export logic here
+                          createPdfReport(context); // Call PDF export function
                         },
                       ),
                       SizedBox(height: 10),
@@ -137,8 +211,7 @@ class MenuDrawer extends StatelessWidget {
                         onPressed: () {
                           // Handle CSV export logic here
                           Navigator.pop(context); // Close the dialog
-                          showExportMessage(context, "Exporting as CSV...");
-                          // Add your CSV export logic here
+                          createCsvReport(context); // Call CSV export function
                         },
                       ),
                     ],

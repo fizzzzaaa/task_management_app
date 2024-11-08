@@ -1,56 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-class TaskNotification extends StatelessWidget {
-  final String message; // The message to display in the notification
-  final Duration duration; // Duration for how long the notification will show
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  TaskNotification({
-    required this.message,
-    this.duration = const Duration(seconds: 2), // Default to 2 seconds
-  });
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
+  // Android-specific initialization
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  // Initialization settings for the plugin
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+  // Initialize the plugin
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      color: Colors.black, // Notification background color
-      width: double.infinity, // Make it full width
-      child: Row(
-        children: [
-          Icon(
-            Icons.notification_important,
-            color: Colors.white,
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+    return MaterialApp(
+      title: 'System Notification Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: NotificationExample(),
     );
   }
 }
 
-// Function to show task notifications
-void showTaskNotification(BuildContext context, String message, {Duration duration = const Duration(seconds: 2)}) {
-  final notification = TaskNotification(message: message, duration: duration);
-
-  // Show notification at the top of the screen
-  showDialog(
-    context: context,
-    barrierDismissible: false, // Prevents closing by tapping outside
-    builder: (BuildContext context) {
-      Future.delayed(duration, () {
-        Navigator.of(context).pop(); // Close the notification after the duration
-      });
-
-      return Dialog(
-        backgroundColor: Colors.transparent, // Make the background transparent
-        child: notification,
-      );
-    },
+// Function to show task notification in the system notification bar
+Future<void> showTaskNotification(String message) async {
+  const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
+    'task_channel_id', // Unique ID for channel
+    'Task Notifications', // Channel name for user
+    channelDescription: 'This channel is for task notifications', // Channel description for user
+    importance: Importance.high,
+    priority: Priority.high,
+    playSound: true,
   );
+
+  const NotificationDetails notificationDetails = NotificationDetails(
+    android: androidNotificationDetails,
+  );
+
+  await flutterLocalNotificationsPlugin.show(
+    0, // ID for the notification
+    'Task Notification', // Title of the notification
+    message, // Body of the notification
+    notificationDetails,
+  );
+}
+
+class NotificationExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('System Notification Example'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            showTaskNotification("This is your task notification!"); // Trigger notification
+          },
+          child: Text("Show Notification"),
+        ),
+      ),
+    );
+  }
 }

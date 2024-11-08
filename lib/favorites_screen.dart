@@ -9,47 +9,45 @@ import 'menu.dart'; // If required, keep this import
 import 'notif.dart'; // Import the notification system
 
 class FavoritesScreen extends StatefulWidget {
-  final Function toggleTheme; // Add toggleTheme parameter
+  final Function toggleTheme;
 
-  FavoritesScreen({required this.toggleTheme}); // Constructor
+  FavoritesScreen({required this.toggleTheme});
 
   @override
   _FavoritesScreenState createState() => _FavoritesScreenState();
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  List<Task> favoriteTasks = []; // List to hold favorite tasks
-  bool isLoading = true; // Loading state for fetching tasks
-  int _selectedIndex = 1; // Set default index to 1 to highlight Favorites tab
+  List<Task> favoriteTasks = [];
+  bool isLoading = true;
+  int _selectedIndex = 1;
 
   @override
   void initState() {
     super.initState();
-    _loadFavoriteTasks(); // Load favorite tasks on initialization
+    _loadFavoriteTasks();
   }
 
   Future<void> _loadFavoriteTasks() async {
     try {
-      final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
-      final tasks = await dbHelper.fetchTasks(); // Fetch all tasks from the database
+      final dbHelper = DatabaseHelper();
+      final tasks = await dbHelper.fetchTasks();
       setState(() {
-        favoriteTasks = tasks.where((task) => task.isFavorite).toList(); // Filter for favorite tasks
-        isLoading = false; // Set loading state to false after tasks are fetched
+        favoriteTasks = tasks.where((task) => task.isFavorite).toList();
+        isLoading = false;
       });
     } catch (e) {
       setState(() {
-        isLoading = false; // Set loading state to false if there is an error
+        isLoading = false;
       });
-      // Optionally, show a message if fetching tasks fails
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load favorite tasks.')),
       );
     }
   }
 
-  // Function to handle bottom navigation
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return; // Avoid re-navigating to the same page
+    if (index == _selectedIndex) return;
     setState(() {
       _selectedIndex = index;
     });
@@ -80,9 +78,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Future<void> _deleteTask(int id) async {
     final dbHelper = DatabaseHelper();
-    await dbHelper.deleteTask(id); // Delete the task by ID
-    _loadFavoriteTasks(); // Reload tasks after deletion
-    showTaskNotification(context, 'Task Deleted Successfully!'); // Show notification
+    await dbHelper.deleteTask(id);
+    _loadFavoriteTasks();
+    showTaskNotification('Task Deleted Successfully!');
+  }
+
+  Future<void> _completeTask(int id) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.updateTaskCompletion(id, true); // Mark task as completed
+    _loadFavoriteTasks();
+    showTaskNotification('Task Marked as Completed!');
+  }
+
+  void _addNewTaskNotification() {
+    showTaskNotification('New Task Added Successfully!');
   }
 
   void _showTaskOptionsMenu(Task task) {
@@ -98,12 +107,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       if (value != null) {
         switch (value) {
           case 'edit':
-          // Implement edit task functionality here
-            showTaskNotification(context, 'Task Edited Successfully!');
+            showTaskNotification('Task Edited Successfully!');
             break;
           case 'complete':
-          // Implement mark as completed functionality here
-            showTaskNotification(context, 'Task Marked as Completed!');
+            _completeTask(task.id!);
             break;
           case 'delete':
             _deleteTask(task.id!);
@@ -126,21 +133,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             _buildNavButton(Icons.calendar_today, 'Calendar', 3),
           ],
         ),
-        backgroundColor: Colors.purple[800], // Purple AppBar background
+        backgroundColor: Colors.purple[800],
         automaticallyImplyLeading: false,
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.menu, color: Colors.white),
             onPressed: () {
-              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+              Scaffold.of(context).openDrawer();
             },
           ),
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading spinner
+          ? Center(child: CircularProgressIndicator())
           : favoriteTasks.isEmpty
-          ? Center(child: Text('No favorite tasks available.')) // No favorite tasks
+          ? Center(child: Text('No favorite tasks available.'))
           : ListView.builder(
         itemCount: favoriteTasks.length,
         itemBuilder: (context, index) {
@@ -149,26 +156,25 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             title: Text(
               task.title,
               style: TextStyle(color: Colors.purple[800]),
-            ), // Purple text for tasks
+            ),
             subtitle: Text(
               '${task.date} at ${task.time}',
               style: TextStyle(color: Colors.purple[600]),
-            ), // Purple subtitle
+            ),
             trailing: IconButton(
               icon: Icon(
                 Icons.more_vert,
                 color: Colors.purple[800],
-              ), // Purple icon
-              onPressed: () => _showTaskOptionsMenu(task), // Show task options menu
+              ),
+              onPressed: () => _showTaskOptionsMenu(task),
             ),
           );
         },
       ),
-      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme),
     );
   }
 
-  // Custom widget to create navigation buttons
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
       onTap: () => _onItemTapped(index),

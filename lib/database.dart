@@ -153,8 +153,8 @@ class DatabaseHelper {
     }
   }
 
-  // Toggle completion status of a task
-  Future<void> toggleCompletion(int taskId, bool isCompleted) async {
+  // Update completion status of a task
+  Future<void> updateTaskCompletion(int taskId, bool isCompleted) async {
     try {
       final db = await database;
       await db.update(
@@ -165,7 +165,7 @@ class DatabaseHelper {
       );
       print('Task completion status updated');
     } catch (e) {
-      print('Error toggling completion: $e');
+      print('Error updating completion status: $e');
     }
   }
 }
