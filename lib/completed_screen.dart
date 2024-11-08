@@ -7,6 +7,10 @@ import 'calendar_screen.dart';
 import 'menu.dart';
 
 class CompletedScreen extends StatefulWidget {
+  final Function toggleTheme;
+
+  CompletedScreen({required this.toggleTheme});
+
   @override
   _CompletedScreenState createState() => _CompletedScreenState();
 }
@@ -51,25 +55,25 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage()),
+          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+          MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CompletedScreen()),
+          MaterialPageRoute(builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CalendarScreen()),
+          MaterialPageRoute(builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme
         );
         break;
     }
@@ -104,6 +108,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
           );
         },
       ),
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );
   }
 

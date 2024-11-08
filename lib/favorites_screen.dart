@@ -5,9 +5,13 @@ import 'todaytask.dart' as todaytask; // Use alias for todaytask.dart
 import 'package:task_management_app/favorites_screen.dart' as favorites;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
-import 'menu.dart'; // If required, keep this import, but do not import TodayTaskPage from here
+import 'menu.dart'; // If required, keep this import
 
 class FavoritesScreen extends StatefulWidget {
+  final Function toggleTheme; // Add toggleTheme parameter
+
+  FavoritesScreen({required this.toggleTheme}); // Constructor
+
   @override
   _FavoritesScreenState createState() => _FavoritesScreenState();
 }
@@ -44,40 +48,37 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   // Function to handle bottom navigation
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) return; // Avoid re-navigating to the same page
     setState(() {
       _selectedIndex = index;
     });
 
+    Widget targetScreen;
     switch (index) {
       case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage()), // Corrected to use alias
-        );
+        targetScreen = todaytask.TodayTaskPage(toggleTheme: widget.toggleTheme);
         break;
       case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen()),
-        );
+        targetScreen = FavoritesScreen(toggleTheme: widget.toggleTheme);
         break;
       case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => CompletedScreen()),
-        );
+        targetScreen = CompletedScreen(toggleTheme: widget.toggleTheme);
         break;
       case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => CalendarScreen()),
-        );
+        targetScreen = CalendarScreen(toggleTheme: widget.toggleTheme);
         break;
+      default:
+        return;
     }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => targetScreen),
+    );
   }
 
   Future<void> _deleteTask(int id) async {
-    final dbHelper = DatabaseHelper(); // Create an instance of DatabaseHelper
+    final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id); // Delete the task by ID
     _loadFavoriteTasks(); // Reload tasks after deletion
   }
@@ -87,18 +88,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       context: context,
       position: RelativeRect.fromLTRB(100.0, 100.0, 0.0, 0.0),
       items: [
-        PopupMenuItem(
-          value: 'edit',
-          child: Text('Edit Task'),
-        ),
-        PopupMenuItem(
-          value: 'complete',
-          child: Text('Mark as Completed'),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Text('Delete Task'),
-        ),
+        PopupMenuItem(value: 'edit', child: Text('Edit Task')),
+        PopupMenuItem(value: 'complete', child: Text('Mark as Completed')),
+        PopupMenuItem(value: 'delete', child: Text('Delete Task')),
       ],
     ).then((value) {
       if (value != null) {
@@ -151,15 +143,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           );
         },
       ),
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );
   }
 
   // Custom widget to create navigation buttons
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
-      onTap: () {
-        _onItemTapped(index);
-      },
+      onTap: () => _onItemTapped(index),
       child: Column(
         children: [
           Icon(

@@ -49,6 +49,36 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     _loadTasksFromDatabase(); // Refresh task list
   }
 
+  void _toggleFavoriteStatus(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      isFavorite: !task.isFavorite,
+      isCompleted: task.isCompleted,
+      repeat: task.repeat,
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.updateTaskFavoriteStatus(task.id!, updatedTask.isFavorite);
+    _loadTasksFromDatabase(); // Refresh task list
+  }
+
+  void _toggleCompleteStatus(Task task) async {
+    final updatedTask = Task(
+      id: task.id,
+      title: task.title,
+      date: task.date,
+      time: task.time,
+      isFavorite: task.isFavorite,
+      isCompleted: !task.isCompleted,
+      repeat: task.repeat,
+    );
+    final dbHelper = DatabaseHelper();
+    await dbHelper.updateTaskCompleteStatus(task.id!, updatedTask.isCompleted);
+    _loadTasksFromDatabase(); // Refresh task list
+  }
+
   // Function to show the input modal for adding a new task
   void _showTaskInputModal() {
     String taskName = '';
@@ -146,16 +176,36 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme)));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme),
+          ),
+        );
         break;
       case 1:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FavoritesScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
         break;
       case 2:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CompletedScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
         break;
       case 3:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme),
+          ),
+        );
         break;
     }
   }
@@ -192,26 +242,24 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
             child: ListTile(
               title: Text(tasks[index].title),
               subtitle: Text('${tasks[index].date} at ${tasks[index].time} - ${tasks[index].repeat}'),
-              trailing: PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'Edit') {
-                    // Functionality to edit task can be implemented here
-                  } else if (value == 'Delete') {
-                    _deleteTask(tasks[index].id!); // Use the task ID for deletion
-                  }
-                },
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem(
-                      value: 'Edit',
-                      child: Text('Edit'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      tasks[index].isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: tasks[index].isFavorite ? Colors.red : Colors.grey,
                     ),
-                    PopupMenuItem(
-                      value: 'Delete',
-                      child: Text('Delete'),
+                    onPressed: () => _toggleFavoriteStatus(tasks[index]),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      tasks[index].isCompleted ? Icons.check_circle : Icons.check_circle_outline,
+                      color: tasks[index].isCompleted ? Colors.green : Colors.grey,
                     ),
-                  ];
-                },
+                    onPressed: () => _toggleCompleteStatus(tasks[index]),
+                  ),
+                ],
               ),
             ),
           );

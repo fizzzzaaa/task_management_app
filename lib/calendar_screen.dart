@@ -3,8 +3,13 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:task_management_app/favorites_screen.dart';
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/todaytask.dart';
+import 'menu.dart'; // Import the menu.dart file here
 
 class CalendarScreen extends StatefulWidget {
+  final Function toggleTheme;  // Add toggleTheme as a parameter
+
+  CalendarScreen({required this.toggleTheme});  // Accept toggleTheme in the constructor
+
   @override
   _CalendarScreenState createState() => _CalendarScreenState();
 }
@@ -28,19 +33,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
         case 0:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => TodayTaskPage()),
+            MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme)), // Pass toggleTheme here
           );
           break;
         case 1:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => FavoritesScreen()),
+            MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme here
           );
           break;
         case 2:
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => CompletedScreen()),
+            MaterialPageRoute(builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme)), // Pass toggleTheme here
           );
           break;
         case 3:
@@ -181,6 +186,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );
   }
 

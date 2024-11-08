@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'completed_screen.dart'; // Example of another screen you may navigate to
-import 'todaytask.dart'; // Import the TodayTaskPage to navigate to it
 
 class MenuDrawer extends StatelessWidget {
   final Function toggleTheme; // The toggleTheme function will be passed from the parent widget
@@ -48,15 +47,14 @@ class MenuDrawer extends StatelessWidget {
               },
             ),
           ),
-          // Navigate to TodayTaskPage
+          // Notifications button
           ListTile(
-            leading: Icon(Icons.check_circle),
-            title: Text('Today\'s Tasks'),
+            leading: Icon(Icons.notifications),
+            title: Text('Notifications'),
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: toggleTheme)),
-              ); // Navigate to TodayTaskPage
+              // Handle navigation to notifications screen
+              Navigator.pop(context); // Close the drawer for now
+              // Navigate to a Notifications screen if needed
             },
           ),
           // Navigate to CompletedScreen (Progress tracking)
@@ -66,7 +64,7 @@ class MenuDrawer extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CompletedScreen()),
+                MaterialPageRoute(builder: (context) => CompletedScreen(toggleTheme: toggleTheme)),
               ); // Navigate to progress tracking screen
             },
           ),
