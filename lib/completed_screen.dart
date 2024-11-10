@@ -5,7 +5,6 @@ import 'todaytask.dart' as todaytask;
 import 'favorites_screen.dart';
 import 'calendar_screen.dart';
 import 'menu.dart';
-import 'notif.dart'; // Import the notification system
 
 class CompletedScreen extends StatefulWidget {
   final Function toggleTheme;
@@ -27,6 +26,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
     _loadCompletedTasks(); // Load completed tasks on initialization
   }
 
+  // Function to load completed tasks
   Future<void> _loadCompletedTasks() async {
     final dbHelper = DatabaseHelper(); // Get the instance of DatabaseHelper
     try {
@@ -39,13 +39,10 @@ class _CompletedScreenState extends State<CompletedScreen> {
       setState(() {
         isLoading = false; // Set loading state to false in case of error
       });
-      // Optionally, show an error message to the user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load completed tasks.')),
-      );
     }
   }
 
+  // Function to delete a task
   Future<void> _deleteTask(int taskId) async {
     final dbHelper = DatabaseHelper(); // Get the instance of DatabaseHelper
     try {
@@ -53,11 +50,8 @@ class _CompletedScreenState extends State<CompletedScreen> {
       setState(() {
         completedTasks.removeWhere((task) => task.id == taskId); // Remove task from list
       });
-      // Show notification for successful task deletion
-      showTaskNotification('Task deleted successfully.');
     } catch (e) {
-      // Show notification for failure to delete task
-      showTaskNotification('Failed to delete task.');
+      // Optionally handle the error if needed
     }
   }
 
@@ -71,28 +65,66 @@ class _CompletedScreenState extends State<CompletedScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => todaytask.TodayTaskPage(toggleTheme: widget.toggleTheme)),
+          MaterialPageRoute(
+              builder: (context) =>
+                  todaytask.TodayTaskPage(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)),
+          MaterialPageRoute(
+              builder: (context) =>
+                  FavoritesScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme)),
+          MaterialPageRoute(
+              builder: (context) =>
+                  CompletedScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme)),
+          MaterialPageRoute(
+              builder: (context) =>
+                  CalendarScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
     }
+  }
+
+  // Function to show task details in a dialog
+  void _showTaskDetailsDialog(Task task) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(task.title),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Date: ${task.date}'),
+              Text('Time: ${task.time}'),
+
+              // Add any other fields you want to display
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -120,7 +152,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading spinner while data is being fetched
+          ? Center(child: CircularProgressIndicator()) // Show loading spinner
           : completedTasks.isEmpty
           ? Center(child: Text('No completed tasks available.'))
           : ListView.builder(
@@ -134,9 +166,13 @@ class _CompletedScreenState extends State<CompletedScreen> {
               trailing: IconButton(
                 icon: Icon(Icons.delete, color: Colors.purple),
                 onPressed: () {
-                  _deleteTask(task.id!); // Force unwrapping, since id is non-null after the check
+                  _deleteTask(task.id!); // Delete task by its ID
                 },
               ),
+              onTap: () {
+                // Show task details in a dialog when the task is tapped
+                _showTaskDetailsDialog(task);
+              },
             );
           } else {
             // Handle the case where id is null (if necessary)
@@ -147,7 +183,7 @@ class _CompletedScreenState extends State<CompletedScreen> {
           }
         },
       ),
-      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme),
     );
   }
 

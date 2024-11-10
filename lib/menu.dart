@@ -7,7 +7,6 @@ import 'dart:io';
 
 // Import other screens and classes
 import 'completed_screen.dart';
-import 'notif.dart';
 
 // Function to show a message after export
 void showExportMessage(BuildContext context, String message) {
@@ -64,7 +63,7 @@ class MenuDrawer extends StatelessWidget {
           child: pw.Text('This is your report!', style: pw.TextStyle(fontSize: 40)),
         ); // Simple text for now
       },
-    ));
+    )) ;
 
     try {
       final outputDirectory = await getExternalStorageDirectory();  // Get external directory
@@ -143,18 +142,6 @@ class MenuDrawer extends StatelessWidget {
                 toggleTheme(); // Call the toggle theme function passed from parent
               },
             ),
-          ),
-          // Notifications button
-          ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text('Notifications'),
-            onTap: () {
-              // Close the drawer before showing the notification
-              Navigator.pop(context);
-
-              // Show task notification when the button is pressed
-
-            },
           ),
           // Navigate to CompletedScreen (Progress tracking)
           ListTile(

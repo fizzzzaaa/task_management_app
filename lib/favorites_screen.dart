@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'database.dart'; // Import your DatabaseHelper
 import 'task_model.dart'; // Import your Task model
-import 'todaytask.dart' as todaytask; // Use alias for todaytask.dart
-import 'package:task_management_app/favorites_screen.dart' as favorites;
+import 'todaytask.dart' as todaytask;
 import 'package:task_management_app/completed_screen.dart';
 import 'package:task_management_app/calendar_screen.dart';
-import 'menu.dart'; // If required, keep this import
-import 'notif.dart'; // Import the notification system
+import 'menu.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final Function toggleTheme;
@@ -22,12 +21,51 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   bool isLoading = true;
   int _selectedIndex = 1;
 
+  // Initialize Flutter Local Notifications
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _loadFavoriteTasks();
   }
 
+  // Step 1: Initialize notifications
+  void _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+    InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Step 2: Show notification
+  Future<void> _showNotification(String message) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'task_channel',
+      'Task Notifications',
+      channelDescription: 'Notifications for task management',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Task Manager',
+      message,
+      platformChannelSpecifics,
+    );
+  }
+
+  // Load favorite tasks from the database
   Future<void> _loadFavoriteTasks() async {
     try {
       final dbHelper = DatabaseHelper();
@@ -40,9 +78,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load favorite tasks.')),
-      );
     }
   }
 
@@ -76,39 +111,38 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  // Step 3: Delete task and show notification
   Future<void> _deleteTask(int id) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id);
     _loadFavoriteTasks();
-    showTaskNotification('Task Deleted Successfully!');
+
+    // Show notification for task deletion
+    await _showNotification('Task Deleted Successfully!');
   }
 
+  // Step 4: Mark task as completed and show notification
   Future<void> _completeTask(int id) async {
     final dbHelper = DatabaseHelper();
-    await dbHelper.updateTaskCompletion(id, true); // Mark task as completed
+    await dbHelper.updateTaskCompletion(id, true);
     _loadFavoriteTasks();
-    showTaskNotification('Task Marked as Completed!');
+
+    // Show notification for task completion
+    await _showNotification('Task Marked as Completed!');
   }
 
-  void _addNewTaskNotification() {
-    showTaskNotification('New Task Added Successfully!');
-  }
-
+  // Display options menu for each task
   void _showTaskOptionsMenu(Task task) {
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(100.0, 100.0, 0.0, 0.0),
       items: [
-        PopupMenuItem(value: 'edit', child: Text('Edit Task')),
         PopupMenuItem(value: 'complete', child: Text('Mark as Completed')),
         PopupMenuItem(value: 'delete', child: Text('Delete Task')),
       ],
     ).then((value) {
       if (value != null) {
         switch (value) {
-          case 'edit':
-            showTaskNotification('Task Edited Successfully!');
-            break;
           case 'complete':
             _completeTask(task.id!);
             break;
@@ -162,10 +196,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               style: TextStyle(color: Colors.purple[600]),
             ),
             trailing: IconButton(
-              icon: Icon(
-                Icons.more_vert,
-                color: Colors.purple[800],
-              ),
+              icon: Icon(Icons.more_vert, color: Colors.purple[800]),
               onPressed: () => _showTaskOptionsMenu(task),
             ),
           );

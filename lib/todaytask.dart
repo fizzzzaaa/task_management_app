@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'database.dart';
 import 'task_model.dart';
 import 'favorites_screen.dart';
 import 'completed_screen.dart';
 import 'calendar_screen.dart';
-import 'menu.dart'; // Import the menu.dart file here
+import 'menu.dart';
 
 class TodayTaskPage extends StatefulWidget {
-  final Function toggleTheme;  // Add toggleTheme as a parameter
+  final Function toggleTheme;
 
-  TodayTaskPage({required this.toggleTheme});  // Accept toggleTheme in the constructor
+  TodayTaskPage({required this.toggleTheme});
 
   @override
   _TodayTaskPageState createState() => _TodayTaskPageState();
@@ -20,15 +21,41 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   List<Task> tasks = [];
   int _selectedIndex = 0;
 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
-    _loadTasksFromDatabase(); // Load tasks on initialization
+    _initializeNotifications();
+    _loadTasksFromDatabase();
+  }
+
+  // Initialize notifications
+  void _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Show notification with a custom message
+  Future<void> _showNotification(String message) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'task_channel',
+      'Task Notifications',
+      channelDescription: 'Notifications for task management',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(0, 'Task Manager', message, platformChannelSpecifics);
   }
 
   Future<void> _loadTasksFromDatabase() async {
     final dbHelper = DatabaseHelper();
-    final allTasks = await dbHelper.fetchTasks(); // Updated to use fetchTasks
+    final allTasks = await dbHelper.fetchTasks();
     setState(() {
       tasks = allTasks;
     });
@@ -41,33 +68,16 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
     setState(() {
       tasks.add(newTask);
     });
-
-    // Show SnackBar for adding task
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Task added successfully!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    await _showNotification('New task added: $taskName');
   }
 
-  void _deleteTask(int id) async {
+  void _deleteTask(int id, String taskName) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteTask(id);
-    _loadTasksFromDatabase(); // Refresh task list
-
-    // Show SnackBar for deleting task
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Task deleted successfully!'),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    _loadTasksFromDatabase();
+    await _showNotification('Task deleted: $taskName');
   }
 
-  // Function to toggle favorite status
   void _toggleFavorite(Task task) async {
     final updatedTask = Task(
       id: task.id,
@@ -75,26 +85,17 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
       date: task.date,
       time: task.time,
       repeat: task.repeat,
-      isFavorite: !task.isFavorite,  // Toggle the favorite status
+      isFavorite: !task.isFavorite,
       isCompleted: task.isCompleted,
     );
     final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(updatedTask); // Update task in the database
+    await dbHelper.insertTask(updatedTask);
     setState(() {
       task.isFavorite = updatedTask.isFavorite;
     });
-
-    // Show SnackBar for toggling favorite
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(task.isFavorite ? 'Task marked as favorite!' : 'Task removed from favorites.'),
-        backgroundColor: Colors.purple,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    await _showNotification(task.isFavorite ? 'Marked as favorite: ${task.title}' : 'Removed from favorites: ${task.title}');
   }
 
-  // Function to toggle completed status
   void _toggleCompleted(Task task) async {
     final updatedTask = Task(
       id: task.id,
@@ -103,22 +104,14 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
       time: task.time,
       repeat: task.repeat,
       isFavorite: task.isFavorite,
-      isCompleted: !task.isCompleted,  // Toggle the completed status
+      isCompleted: !task.isCompleted,
     );
     final dbHelper = DatabaseHelper();
-    await dbHelper.insertTask(updatedTask); // Update task in the database
+    await dbHelper.insertTask(updatedTask);
     setState(() {
       task.isCompleted = updatedTask.isCompleted;
     });
-
-    // Show SnackBar for toggling completed status
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(task.isCompleted ? 'Task marked as completed!' : 'Task marked as pending.'),
-        backgroundColor: Colors.blue,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    await _showNotification(task.isCompleted ? 'Task completed: ${task.title}' : 'Marked as incomplete: ${task.title}');
   }
 
   void _onItemTapped(int index) {
@@ -130,44 +123,35 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme),
-          ),
+          MaterialPageRoute(builder: (context) => TodayTaskPage(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme),
-          ),
+          MaterialPageRoute(builder: (context) => FavoritesScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme),
-          ),
+          MaterialPageRoute(builder: (context) => CompletedScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme),
-          ),
+          MaterialPageRoute(builder: (context) => CalendarScreen(toggleTheme: widget.toggleTheme)),
         );
         break;
     }
   }
 
-  // Function to show the input modal for adding a new task
   void _showTaskInputModal() {
     String taskName = '';
     String? date;
     String? time;
-    String repeat = 'None'; // Default repeat option
+    String repeat = 'None';
 
     showModalBottomSheet(
       context: context,
@@ -271,7 +255,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
           builder: (context) => IconButton(
             icon: Icon(Icons.menu, color: Colors.white),
             onPressed: () {
-              Scaffold.of(context).openDrawer(); // Open the drawer automatically
+              Scaffold.of(context).openDrawer();
             },
           ),
         ),
@@ -293,7 +277,7 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                       color: tasks[index].isFavorite ? Colors.purple : null,
                     ),
                     onPressed: () {
-                      _toggleFavorite(tasks[index]);  // Toggle favorite status
+                      _toggleFavorite(tasks[index]);
                     },
                   ),
                   IconButton(
@@ -302,13 +286,13 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
                       color: tasks[index].isCompleted ? Colors.purple : null,
                     ),
                     onPressed: () {
-                      _toggleCompleted(tasks[index]);  // Toggle completed status
+                      _toggleCompleted(tasks[index]);
                     },
                   ),
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'Delete') {
-                        _deleteTask(tasks[index].id!); // Use the task ID for deletion
+                        _deleteTask(tasks[index].id!, tasks[index].title);
                       }
                     },
                     itemBuilder: (context) {
@@ -326,35 +310,35 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
           );
         },
       ),
+      drawer: MenuDrawer(toggleTheme: widget.toggleTheme),
       floatingActionButton: FloatingActionButton(
         onPressed: _showTaskInputModal,
-        child: Icon(Icons.add),
         backgroundColor: Colors.purple[800],
+        child: Icon(Icons.add),
       ),
-      drawer: MenuDrawer(toggleTheme: widget.toggleTheme), // Pass toggleTheme to MenuDrawer
     );
   }
 
   Widget _buildNavButton(IconData icon, String label, int index) {
     return GestureDetector(
-      onTap: () {
-        _onItemTapped(index);
-      },
+      onTap: () => _onItemTapped(index),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
-            color: _selectedIndex == index ? Colors.white : Colors.brown[200],
+            color: _selectedIndex == index ? Colors.white : Colors.white70,
           ),
           Text(
             label,
             style: TextStyle(
-              color: _selectedIndex == index ? Colors.white : Colors.brown[200],
-              fontSize: 12,
+              color: _selectedIndex == index ? Colors.white : Colors.white70,
+              fontSize: 12, // Set the desired font size here (e.g., 10)
             ),
           ),
         ],
       ),
     );
   }
+
 }
